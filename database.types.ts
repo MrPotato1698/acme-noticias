@@ -94,26 +94,26 @@ export type Database = {
         }
         Relationships: []
       }
-      comentary: {
+      commentary: {
         Row: {
           article: number
+          comment: string
           id: number
           redactor: string | null
-          text: string
           timestamp: string | null
         }
         Insert: {
           article: number
+          comment: string
           id?: number
           redactor?: string | null
-          text: string
           timestamp?: string | null
         }
         Update: {
           article?: number
+          comment?: string
           id?: number
           redactor?: string | null
-          text?: string
           timestamp?: string | null
         }
         Relationships: [
