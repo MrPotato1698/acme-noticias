@@ -34,6 +34,105 @@ export type Database = {
   }
   public: {
     Tables: {
+      article: {
+        Row: {
+          author: string
+          body: string
+          category: number
+          id: number
+          timestamp: string
+          title: string
+        }
+        Insert: {
+          author?: string
+          body: string
+          category: number
+          id: number
+          timestamp: string
+          title: string
+        }
+        Update: {
+          author?: string
+          body?: string
+          category?: number
+          id?: number
+          timestamp?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_author_fkey"
+            columns: ["author"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "article_category_fkey"
+            columns: ["category"]
+            isOneToOne: false
+            referencedRelation: "category"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      category: {
+        Row: {
+          description: string | null
+          id: number
+          name: string
+        }
+        Insert: {
+          description?: string | null
+          id?: number
+          name: string
+        }
+        Update: {
+          description?: string | null
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      comentary: {
+        Row: {
+          article: number
+          id: number
+          redactor: string | null
+          text: string
+          timestamp: string | null
+        }
+        Insert: {
+          article: number
+          id?: number
+          redactor?: string | null
+          text: string
+          timestamp?: string | null
+        }
+        Update: {
+          article?: number
+          id?: number
+          redactor?: string | null
+          text?: string
+          timestamp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comentary_article_fkey"
+            columns: ["article"]
+            isOneToOne: false
+            referencedRelation: "article"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comentary_redactor_fkey"
+            columns: ["redactor"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           email: string | null
@@ -55,6 +154,29 @@ export type Database = {
           id?: string
           rol?: number | null
           updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_rol_fkey"
+            columns: ["rol"]
+            isOneToOne: false
+            referencedRelation: "role"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      role: {
+        Row: {
+          id: number
+          name: string
+        }
+        Insert: {
+          id?: number
+          name: string
+        }
+        Update: {
+          id?: number
+          name?: string
         }
         Relationships: []
       }
