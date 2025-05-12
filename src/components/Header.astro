@@ -1,0 +1,61 @@
+---
+// Importamos los componentes necesarios
+import DropdownMenu from './DropdownMenu.astro';
+
+// Simulamos la obtención del usuario actual (esto se reemplazaría con tu lógica de autenticación real)
+const isLoggedIn = Astro.cookies.has('session');
+let userRole = '';
+
+if (isLoggedIn) {
+  // En un caso real, obtendrías el rol desde tu sesión o base de datos
+  userRole = Astro.cookies.get('userRole')?.value || 'redactor';
+}
+---
+
+<header class="bg-[#2a2b2a] text-[#fcf7f8] shadow-md">
+  <div class="container mx-auto px-4 py-3">
+    <div class="flex justify-between items-center">
+      <!-- Logo -->
+      <a href="/" class="flex items-center space-x-2">
+        <!-- Icono simplificado -->
+        <span class="text-[#a31621] font-bold text-2xl">N</span>
+        <span class="font-bold text-xl">Acme Noticias</span>
+      </a>
+
+      <!-- Navegación -->
+      <div class="flex items-center space-x-4">
+        <!-- Botón de búsqueda -->
+        <a href="/buscar" class="flex items-center space-x-1 px-3 py-2 rounded-md hover:bg-[#23b5d3] hover:text-[#2a2b2a] transition-colors duration-200">
+          <!-- Icono simplificado -->
+          <span class="text-lg">🔍</span>
+          <span>Buscar</span>
+        </a>
+
+        <!-- Botón de inicio de sesión o menú de usuario -->
+        {isLoggedIn ? (
+          <div class="relative" id="user-menu-container">
+            <button
+              id="user-menu-button"
+              class="flex items-center space-x-1 px-3 py-2 rounded-md bg-[#a31621] hover:bg-[#8a131c] transition-colors duration-200"
+              aria-expanded="false"
+              aria-haspopup="true"
+            >
+              <span class="text-lg">👤</span>
+              <span>Mi Cuenta</span>
+              <span class="text-xs ml-1">▼</span>
+            </button>
+
+            <DropdownMenu userRole={userRole} />
+          </div>
+        ) : (
+          <a href="/login" class="flex items-center space-x-1 px-3 py-2 rounded-md bg-[#a31621] hover:bg-[#8a131c] transition-colors duration-200">
+            <span class="text-lg">🔑</span>
+            <span>Iniciar Sesión</span>
+          </a>
+        )}
+      </div>
+    </div>
+  </div>
+</header>
+
+<script src="@/lib/dropdown.ts"></script>

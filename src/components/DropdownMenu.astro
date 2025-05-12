@@ -1,0 +1,61 @@
+---
+// Recibimos el rol del usuario como prop
+const { userRole } = Astro.props;
+---
+
+<div
+  id="user-dropdown-menu"
+  class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 hidden z-10"
+  role="menu"
+  aria-orientation="vertical"
+  aria-labelledby="user-menu-button"
+>
+  <div class="py-1" role="none">
+    <!-- Opciones comunes para redactores y administradores -->
+    <a href="/articulos/nuevo" class="block px-4 py-2 text-sm text-[#2a2b2a] hover:bg-[#fcf7f8] hover:text-[#a31621]" role="menuitem">
+      <div class="flex items-center space-x-2">
+        <span class="text-sm">📝</span>
+        <span>Crear nuevo artículo</span>
+      </div>
+    </a>
+
+    <a href="/articulos/administrar" class="block px-4 py-2 text-sm text-[#2a2b2a] hover:bg-[#fcf7f8] hover:text-[#a31621]" role="menuitem">
+      <div class="flex items-center space-x-2">
+        <span class="text-sm">📋</span>
+        <span>Administrar artículos</span>
+      </div>
+    </a>
+
+    <!-- Opciones solo para administradores -->
+    {userRole === 'administrador' && (
+      <>
+        <a href="/usuarios/administrar" class="block px-4 py-2 text-sm text-[#2a2b2a] hover:bg-[#fcf7f8] hover:text-[#a31621]" role="menuitem">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm">👥</span>
+            <span>Administrar usuarios</span>
+          </div>
+        </a>
+
+        <a href="/aplicacion/administrar" class="block px-4 py-2 text-sm text-[#2a2b2a] hover:bg-[#fcf7f8] hover:text-[#a31621]" role="menuitem">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm">⚙️</span>
+            <span>Administrar aplicación</span>
+          </div>
+        </a>
+      </>
+    )}
+
+    <!-- Separador -->
+    <div class="border-t border-gray-200 my-1"></div>
+
+    <!-- Cerrar sesión -->
+    <form method="POST" action="/api/logout">
+      <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-[#2a2b2a] hover:bg-[#fcf7f8] hover:text-[#a31621]" role="menuitem">
+        <div class="flex items-center space-x-2">
+          <span class="text-sm">🚪</span>
+          <span>Cerrar sesión</span>
+        </div>
+      </button>
+    </form>
+  </div>
+</div>
