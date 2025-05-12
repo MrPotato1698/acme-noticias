@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+@theme{
+  /* Colores originales */
+  --color-primary: #a31621;   /* Madder */
+  --color-secondary: #23b5d3; /* Pacific Cyan */
+  --color-accent: #ffbe0b;    /* Amber */
+  --color-light: #fcf7f8;     /* Snow */
+  --color-dark: #2a2b2a;      /* Jet */
+
+}
