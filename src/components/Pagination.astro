@@ -1,0 +1,132 @@
+---
+interface Props {
+  currentPage: number;
+  totalPages: number;
+  baseUrl: string;
+}
+
+const { currentPage, totalPages, baseUrl } = Astro.props;
+
+// Función para generar la URL de una página específica
+function getPageUrl(page: number): string {
+  const url = new URL(baseUrl);
+  url.searchParams.set('page', page.toString());
+  return url.toString();
+}
+
+// Determinar qué páginas mostrar
+const showFirst = currentPage > 3;
+const showLast = currentPage < totalPages - 2;
+const showPrevEllipsis = currentPage > 4;
+const showNextEllipsis = currentPage < totalPages - 3;
+
+// Generar array de páginas a mostrar
+let pagesToShow: number[] = [];
+
+// Siempre mostrar la página actual y al menos una página antes y después (si existen)
+for (let i = Math.max(1, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
+  pagesToShow.push(i);
+}
+
+// Asegurarse de que no haya duplicados si añadimos la primera o última página
+if (showFirst && !pagesToShow.includes(1)) {
+  pagesToShow = [1, ...pagesToShow];
+}
+
+if (showLast && !pagesToShow.includes(totalPages)) {
+  pagesToShow = [...pagesToShow, totalPages];
+}
+
+// Ordenar las páginas
+pagesToShow.sort((a, b) => a - b);
+---
+
+<nav aria-label="Paginación" class="flex justify-center my-8">
+  <ul class="flex items-center space-x-1">
+    <!-- Botón Anterior -->
+    <li>
+      <a 
+        href={currentPage > 1 ? getPageUrl(currentPage - 1) : '#'} 
+        class={`px-3 py-2 rounded-md ${currentPage > 1 
+          ? 'text-[#2a2b2a] hover:bg-[#23b5d3]/10 hover:text-[#23b5d3]' 
+          : 'text-[#2a2b2a]/40 cursor-not-allowed'}`}
+        aria-disabled={currentPage === 1}
+        aria-label="Página anterior"
+      >
+        <span aria-hidden="true">←</span>
+        <span class="sr-only">Página anterior</span>
+      </a>
+    </li>
+    
+    <!-- Primera página -->
+    {showFirst && !pagesToShow.includes(1) && (
+      <li>
+        <a 
+          href={getPageUrl(1)} 
+          class="px-3 py-2 rounded-md text-[#2a2b2a] hover:bg-[#23b5d3]/10 hover:text-[#23b5d3]"
+          aria-label="Página 1"
+        >
+          1
+        </a>
+      </li>
+    )}
+    
+    <!-- Elipsis anterior -->
+    {showPrevEllipsis && (
+      <li>
+        <span class="px-3 py-2 text-[#2a2b2a]/60">...</span>
+      </li>
+    )}
+    
+    <!-- Páginas numeradas -->
+    {pagesToShow.map(page => (
+      <li>
+        <a 
+          href={getPageUrl(page)} 
+          class={`px-3 py-2 rounded-md ${page === currentPage 
+            ? 'bg-[#a31621] text-white font-medium' 
+            : 'text-[#2a2b2a] hover:bg-[#23b5d3]/10 hover:text-[#23b5d3]'}`}
+          aria-label={`Página ${page}`}
+          aria-current={page === currentPage ? 'page' : undefined}
+        >
+          {page}
+        </a>
+      </li>
+    ))}
+    
+    <!-- Elipsis posterior -->
+    {showNextEllipsis && (
+      <li>
+        <span class="px-3 py-2 text-[#2a2b2a]/60">...</span>
+      </li>
+    )}
+    
+    <!-- Última página -->
+    {showLast && !pagesToShow.includes(totalPages) && (
+      <li>
+        <a 
+          href={getPageUrl(totalPages)} 
+          class="px-3 py-2 rounded-md text-[#2a2b2a] hover:bg-[#23b5d3]/10 hover:text-[#23b5d3]"
+          aria-label={`Página ${totalPages}`}
+        >
+          {totalPages}
+        </a>
+      </li>
+    )}
+    
+    <!-- Botón Siguiente -->
+    <li>
+      <a 
+        href={currentPage < totalPages ? getPageUrl(currentPage + 1) : '#'} 
+        class={`px-3 py-2 rounded-md ${currentPage < totalPages 
+          ? 'text-[#2a2b2a] hover:bg-[#23b5d3]/10 hover:text-[#23b5d3]' 
+          : 'text-[#2a2b2a]/40 cursor-not-allowed'}`}
+        aria-disabled={currentPage === totalPages}
+        aria-label="Página siguiente"
+      >
+        <span aria-hidden="true">→</span>
+        <span class="sr-only">Página siguiente</span>
+      </a>
+    </li>
+  </ul>
+</nav>

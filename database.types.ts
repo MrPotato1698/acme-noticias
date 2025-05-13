@@ -38,7 +38,6 @@ export type Database = {
         Row: {
           author: string
           body: string
-          category: number
           id: number
           timestamp: string
           title: string
@@ -46,7 +45,6 @@ export type Database = {
         Insert: {
           author?: string
           body: string
-          category: number
           id: number
           timestamp: string
           title: string
@@ -54,7 +52,6 @@ export type Database = {
         Update: {
           author?: string
           body?: string
-          category?: number
           id?: number
           timestamp?: string
           title?: string
@@ -67,8 +64,31 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      articlecategories: {
+        Row: {
+          article: number
+          category: number
+        }
+        Insert: {
+          article: number
+          category: number
+        }
+        Update: {
+          article?: number
+          category?: number
+        }
+        Relationships: [
           {
-            foreignKeyName: "article_category_fkey"
+            foreignKeyName: "articlecategories_article_fkey"
+            columns: ["article"]
+            isOneToOne: false
+            referencedRelation: "article"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articlecategories_category_fkey"
             columns: ["category"]
             isOneToOne: false
             referencedRelation: "category"
