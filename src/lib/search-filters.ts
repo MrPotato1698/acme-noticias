@@ -40,32 +40,32 @@ document.addEventListener('DOMContentLoaded', (): void => {
   // Función para aplicar los filtros y navegar a la URL con los parámetros
   function applyFilters(): void {
     const url = new URL(window.location.href);
-    
+
     // Actualizar los parámetros de búsqueda
     if (currentState.q) {
       url.searchParams.set('q', currentState.q);
     } else {
       url.searchParams.delete('q');
     }
-    
+
     if (currentState.category) {
       url.searchParams.set('category', currentState.category);
     } else {
       url.searchParams.delete('category');
     }
-    
+
     if (currentState.author) {
       url.searchParams.set('author', currentState.author);
     } else {
       url.searchParams.delete('author');
     }
-    
+
     if (currentState.sort && currentState.sort !== 'newest') {
       url.searchParams.set('sort', currentState.sort);
     } else {
       url.searchParams.delete('sort');
     }
-    
+
     // Navegar a la URL con los filtros aplicados
     window.location.href = url.toString();
   }
@@ -77,25 +77,25 @@ document.addEventListener('DOMContentLoaded', (): void => {
     currentState.category = '';
     currentState.author = '';
     currentState.sort = 'newest';
-    
+
     // Resetear los controles de la UI
     searchInput.value = '';
-    
+
     // Seleccionar "Todas las categorías"
     for (const input of categoryInputs) {
       input.checked = input.value === '';
     }
-    
+
     // Seleccionar "Más recientes primero"
     for (const input of sortInputs) {
       input.checked = input.value === 'newest';
     }
-    
+
     // Limpiar el autor seleccionado
     selectedAuthorId.value = '';
     authorSearch.value = '';
     selectedAuthorDisplay.textContent = '';
-    
+
     // Aplicar los filtros (esto navegará a la URL sin parámetros)
     applyFilters();
   }
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', (): void => {
   authorSearch.addEventListener('input', (e: Event): void => {
     const target = e.target as HTMLInputElement;
     const searchValue = target.value.toLowerCase();
-    
+
     // Filtrar las opciones basadas en la búsqueda
     authorOptions.forEach((option: HTMLDivElement): void => {
       const authorName = option.textContent?.toLowerCase() ?? '';
@@ -154,20 +154,23 @@ document.addEventListener('DOMContentLoaded', (): void => {
     option.addEventListener('click', (): void => {
       const authorId = option.getAttribute('data-author-id') ?? '';
       const authorName = option.getAttribute('data-author-name') ?? 'Todos los redactores';
-      
+
       // Actualizar el estado y la UI
       currentState.author = authorId;
       selectedAuthorId.value = authorId;
       authorSearch.value = authorId ? authorName : '';
-      
+
       if (authorId) {
         selectedAuthorDisplay.textContent = `Filtrando por: ${authorName}`;
       } else {
         selectedAuthorDisplay.textContent = '';
       }
-      
+
       // Cerrar el dropdown
       authorDropdown.classList.add('hidden');
+
+      // Aplicar el filtro automáticamente al seleccionar un redactor
+      applyFilters();
     });
   });
 

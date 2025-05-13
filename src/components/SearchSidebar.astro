@@ -6,17 +6,36 @@ import { supabase } from '@/db/supabase';
 
 
 // Obtenemos las categorías de la base de datos
-const { data: categories, error: categoriesError } = await supabase
+const { data: categories } = await supabase
   .from('category')
   .select('id, name')
   .order('name');
 
-// Obtenemos los redactores de la base de datos
-const { data: authors, error: authorsError } = await supabase
-  .from('profiles')
-  .select('id, full_name')
-  .eq('rol', 1)
-  .order('full_name');
+// Obtenemos los redactores (perfiles con rol de redactor)
+const { data: roles } = await supabase
+  .from('role')
+  .select('id, name')
+  .eq('name', 'Redactor');
+
+const redactorRoleId = roles && roles.length > 0 ? roles[0].id : null;
+
+let authors: { id: string; full_name: string; email: string }[] = [];
+let authorsError = null;
+if (redactorRoleId !== null) {
+  const { data: authorData, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, email')
+    .eq('rol', redactorRoleId)
+    .order('full_name');
+  authors = (authorData ?? [])
+    .filter(a => a.full_name !== null && a.email !== null)
+    .map(a => ({
+      id: String(a.id), // Convertir id a string
+      full_name: a.full_name as string,
+      email: a.email as string
+    }));
+  authorsError = error;
+}
 
 // Obtenemos los parámetros de búsqueda actuales de la URL
 const url = Astro.url;
@@ -30,48 +49,59 @@ const currentQuery = searchParams.get('q') || '';
 <aside class="w-full md:w-64 bg-[#fcf7f8] border-r border-[#2a2b2a]/10 h-full overflow-y-auto">
   <div class="p-4">
     <h2 class="text-lg font-bold text-[#2a2b2a] mb-4">Filtros de búsqueda</h2>
-    
+
     <!-- Búsqueda por palabra clave -->
     <div class="mb-6">
       <h3 class="text-sm font-semibold text-[#2a2b2a] mb-2">Palabra clave</h3>
       <form id="search-form" class="flex items-center">
-        <input 
-          type="text" 
-          id="search-input" 
-          name="q" 
+        <input
+          type="text"
+          id="search-input"
+          name="q"
           value={currentQuery}
-          placeholder="Buscar noticias..." 
+          placeholder="Buscar noticias..."
           class="w-full px-3 py-2 border border-[#2a2b2a]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#23b5d3]"
         />
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           class="ml-2 p-2 bg-[#a31621] text-white rounded-md hover:bg-[#8a131c] transition-colors"
           aria-label="Buscar"
         >
-          🔍
+          <svg
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
         </button>
       </form>
     </div>
-    
+
     <!-- Ordenar por fecha -->
     <SortOptions currentSort={currentSort} />
-    
+
     <!-- Filtrar por categorías -->
     <CategoryFilter categories={categories || []} currentCategory={currentCategory} />
-    
+
     <!-- Filtrar por redactor -->
     <AuthorFilter authors={authors || []} currentAuthor={currentAuthor} />
-    
+
     <!-- Botones de acción -->
     <div class="mt-6 flex flex-col space-y-2">
-      <button 
-        id="apply-filters" 
+      <button
+        id="apply-filters"
         class="w-full py-2 bg-[#a31621] text-white rounded-md hover:bg-[#8a131c] transition-colors"
       >
         Aplicar filtros
       </button>
-      <button 
-        id="clear-filters" 
+      <button
+        id="clear-filters"
         class="w-full py-2 bg-transparent border border-[#2a2b2a]/20 text-[#2a2b2a] rounded-md hover:bg-[#2a2b2a]/5 transition-colors"
       >
         Limpiar filtros
@@ -80,4 +110,4 @@ const currentQuery = searchParams.get('q') || '';
   </div>
 </aside>
 
-<script src="../scripts/search-filters.ts"></script>
+<script src="@/lib/search-filters.ts"></script>
