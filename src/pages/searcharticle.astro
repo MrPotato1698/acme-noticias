@@ -1,59 +1,209 @@
 ---
-import Layout from '@/layouts/Layout.astro';
-import Header from '@/components/Header.astro';
-import SearchSidebar from '@/components/SearchSidebar.astro';
-import { supabase } from '@/db/supabase';
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import SearchSidebar from '../components/SearchSidebar.astro';
+import Pagination from '../components/Pagination.astro';
+import { supabase } from '../db/supabase';
+
+export const prerender = false;
 
 // Obtenemos los parámetros de búsqueda de la URL
 const url = Astro.url;
 const searchParams = url.searchParams;
 const query = searchParams.get('q') || '';
-const category = searchParams.get('category') || '';
-const author = searchParams.get('author') || '';
+const categoryId = searchParams.get('category') || '';
+const authorId = searchParams.get('author') || '';
 const sort = searchParams.get('sort') || 'newest';
 
-// Construimos la consulta a Supabase
-let articlesQuery = supabase
-  .from('article')
-  .select('id, title, excerpt, published_at, categories(id, name), users(id, full_name, username)');
+// Parámetros de paginación
+const ITEMS_PER_PAGE = 10;
+const currentPage = parseInt(searchParams.get('page') || '1');
+const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-// Aplicamos los filtros
+// Primero, obtenemos todos los IDs de artículos que coinciden con los filtros básicos
+let baseQuery = supabase.from('article').select('id');
+
+// Aplicamos filtro por título si hay una búsqueda
 if (query) {
-  articlesQuery = articlesQuery.ilike('title', `%${query}%`);
+  baseQuery = baseQuery.ilike('title', `%${query}%`);
 }
 
-if (category) {
-  articlesQuery = articlesQuery.eq('category_id', category);
+// Aplicamos filtro por autor si está seleccionado
+if (authorId) {
+  baseQuery = baseQuery.eq('author', authorId);
 }
 
-if (author) {
-  articlesQuery = articlesQuery.eq('author_id', author);
+// Si hay un filtro de categoría, necesitamos filtrar por la tabla de relación
+let filteredArticleIds: number[] = [];
+let totalCount = 0;
+
+try {
+  if (categoryId) {
+    // Obtenemos los IDs de artículos que tienen la categoría seleccionada
+    const { data: articleCategoriesData } = await supabase
+      .from('articlecategories')
+      .select('article')
+      .eq('category', parseInt(categoryId));
+    
+    const categoryArticleIds = articleCategoriesData?.map(ac => ac.article) || [];
+    
+    if (categoryArticleIds.length > 0) {
+      // Filtramos la consulta base para incluir solo artículos con la categoría seleccionada
+      baseQuery = baseQuery.in('id', categoryArticleIds);
+    } else {
+      // Si no hay artículos con esta categoría, establecemos una lista vacía
+      filteredArticleIds = [];
+    }
+  }
+
+  // Ejecutamos la consulta para obtener los IDs filtrados
+  const { data: filteredIds, count } = await baseQuery;
+  
+  if (filteredIds) {
+    filteredArticleIds = filteredIds.map(item => item.id);
+    totalCount = count || filteredIds.length;
+  }
+} catch (error) {
+  console.error('Error al filtrar artículos:', error);
 }
 
-// Aplicamos el ordenamiento
-if (sort === 'newest') {
-  articlesQuery = articlesQuery.order('published_at', { ascending: false });
-} else if (sort === 'oldest') {
-  articlesQuery = articlesQuery.order('published_at', { ascending: true });
-} else if (sort === 'relevance' && query) {
-  // Para ordenar por relevancia, podríamos usar una lógica más compleja
-  // Por ahora, simplemente ordenamos por título si la búsqueda es por relevancia
-  articlesQuery = articlesQuery.order('title');
-}
+// Calculamos el total de páginas
+const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 
-// Ejecutamos la consulta
-const { data: articles, error } = await articlesQuery;
+// Si no hay resultados, no necesitamos hacer más consultas
+let articlesWithCategories: any[] = [];
+let articlesError = null;
+
+if (filteredArticleIds.length > 0) {
+  try {
+    // Obtenemos los artículos para la página actual
+    let articlesQuery = supabase
+      .from('article')
+      .select(`
+        id, 
+        title, 
+        body,
+        timestamp,
+        author,
+        profiles!article_author_fkey (id, full_name, email)
+      `)
+      .in('id', filteredArticleIds);
+    
+    // Aplicamos ordenamiento
+    if (sort === 'newest') {
+      articlesQuery = articlesQuery.order('timestamp', { ascending: false });
+    } else if (sort === 'oldest') {
+      articlesQuery = articlesQuery.order('timestamp', { ascending: true });
+    }
+    
+    // Aplicamos paginación
+    articlesQuery = articlesQuery.range(offset, offset + ITEMS_PER_PAGE - 1);
+    
+    // Ejecutamos la consulta
+    const { data: articles, error } = await articlesQuery;
+    
+    if (error) {
+      articlesError = error;
+    } else if (articles) {
+      // Para cada artículo, obtenemos sus categorías
+      articlesWithCategories = await Promise.all(
+        articles.map(async (article) => {
+          try {
+            // Obtenemos las categorías del artículo
+            const { data: articleCategoriesData } = await supabase
+              .from('articlecategories')
+              .select('category')
+              .eq('article', article.id);
+
+            const categoryIds = articleCategoriesData?.map(ac => ac.category) || [];
+
+            // Obtenemos los detalles de las categorías
+            let categoriesData: { id: number; name: string }[] = [];
+            if (categoryIds.length > 0) {
+              const { data: categories } = await supabase
+                .from('category')
+                .select('id, name')
+                .in('id', categoryIds);
+
+              categoriesData = categories || [];
+            }
+
+            // Creamos un extracto del cuerpo del artículo (primeros 150 caracteres)
+            const excerpt = article.body.substring(0, 150) + (article.body.length > 150 ? '...' : '');
+
+            // Devolvemos el artículo con sus categorías y extracto
+            return {
+              ...article,
+              categories: categoriesData,
+              excerpt
+            };
+          } catch (error) {
+            console.error(`Error al obtener categorías para el artículo ${article.id}:`, error);
+            return {
+              ...article,
+              categories: [],
+              excerpt: article.body.substring(0, 150) + (article.body.length > 150 ? '...' : '')
+            };
+          }
+        })
+      );
+    }
+  } catch (error) {
+    console.error('Error al obtener artículos:', error);
+    articlesError = error;
+  }
+}
 
 // Título de la página basado en los filtros
 let pageTitle = 'Búsqueda de noticias';
 if (query) {
   pageTitle = `Resultados para "${query}"`;
 }
+
+// Si hay un filtro de categoría, obtenemos el nombre de la categoría
+let categoryName = '';
+if (categoryId) {
+  try {
+    const { data: categoryData } = await supabase
+      .from('category')
+      .select('name')
+      .eq('id', parseInt(categoryId))
+      .single();
+    
+    if (categoryData) {
+      categoryName = categoryData.name;
+    }
+  } catch (error) {
+    console.error('Error al obtener nombre de categoría:', error);
+  }
+}
+
+// Si hay un filtro de autor, obtenemos el nombre del autor
+let authorName = '';
+if (authorId) {
+  try {
+    const { data: authorData } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', authorId)
+      .single();
+    
+    if (authorData) {
+      authorName = authorData.full_name || '';
+    }
+  } catch (error) {
+    console.error('Error al obtener nombre de autor:', error);
+  }
+}
+
+// Construimos la URL base para la paginación (manteniendo todos los filtros)
+const paginationBaseUrl = new URL(url);
+paginationBaseUrl.searchParams.delete('page'); // Eliminamos el parámetro de página actual
+const baseUrl = paginationBaseUrl.toString();
 ---
 
 <Layout title={pageTitle}>
-  <Header />
-  
+
   <main class="flex flex-col md:flex-row min-h-screen bg-[#fcf7f8]">
     <!-- Sidebar de búsqueda -->
     <div class="w-full md:w-64 md:min-h-screen border-b md:border-b-0 md:border-r border-[#2a2b2a]/10">
@@ -66,7 +216,7 @@ if (query) {
       
       <!-- Resumen de filtros aplicados -->
       <div class="mb-6">
-        {(query || category || author || sort !== 'newest') && (
+        {(query || categoryId || authorId || sort !== 'newest') && (
           <div class="bg-[#fcf7f8] border border-[#2a2b2a]/10 rounded-md p-3">
             <h2 class="text-sm font-semibold text-[#2a2b2a] mb-2">Filtros aplicados:</h2>
             <div class="flex flex-wrap gap-2">
@@ -76,15 +226,15 @@ if (query) {
                 </span>
               )}
               
-              {category && (
+              {categoryId && categoryName && (
                 <span class="inline-flex items-center px-2 py-1 rounded-md text-xs bg-[#a31621]/10 text-[#a31621]">
-                  Categoría: {articles?.[0]?.categories?.name || ''}
+                  Categoría: {categoryName}
                 </span>
               )}
               
-              {author && (
+              {authorId && authorName && (
                 <span class="inline-flex items-center px-2 py-1 rounded-md text-xs bg-[#ffbe0b]/10 text-[#2a2b2a]">
-                  Redactor: {articles?.[0]?.users?.full_name || ''}
+                  Redactor: {authorName}
                 </span>
               )}
               
@@ -98,30 +248,41 @@ if (query) {
         )}
       </div>
       
+      <!-- Información de resultados y paginación -->
+      <div class="flex justify-between items-center mb-4">
+        <p class="text-sm text-[#2a2b2a]/70">
+          Mostrando {articlesWithCategories.length} de {totalCount} resultados
+          {totalPages > 1 && ` • Página ${currentPage} de ${totalPages}`}
+        </p>
+      </div>
+      
       <!-- Resultados de la búsqueda -->
       <div class="space-y-6">
-        {error && (
+        {articlesError && (
           <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             <p>Error al cargar los artículos. Por favor, intenta de nuevo.</p>
+            <p class="text-xs mt-1">{JSON.stringify(articlesError)}</p>
           </div>
         )}
         
-        {articles && articles.length === 0 && (
+        {articlesWithCategories.length === 0 && (
           <div class="text-center py-12">
             <p class="text-lg text-[#2a2b2a]/70">No se encontraron resultados para tu búsqueda.</p>
             <p class="mt-2 text-sm text-[#2a2b2a]/50">Intenta con otros términos o filtros.</p>
           </div>
         )}
         
-        {articles && articles.map((article) => (
+        {articlesWithCategories.map((article) => (
           <article class="bg-white border border-[#2a2b2a]/10 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <div class="p-4">
-              <div class="flex items-center gap-2 mb-2">
-                <span class="text-xs px-2 py-0.5 bg-[#a31621]/10 text-[#a31621] rounded-full">
-                  {article.categories?.name}
-                </span>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                {article.categories && article.categories.map((category: { id: number; name: string }) => (
+                  <span class="text-xs px-2 py-0.5 bg-[#a31621]/10 text-[#a31621] rounded-full">
+                    {category.name}
+                  </span>
+                ))}
                 <span class="text-xs text-[#2a2b2a]/60">
-                  {new Date(article.published_at).toLocaleDateString('es-ES', {
+                  {new Date(article.timestamp).toLocaleDateString('es-ES', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
@@ -146,8 +307,8 @@ if (query) {
                 
                 <div class="flex items-center">
                   <span class="text-sm text-[#2a2b2a]/70">Por </span>
-                  <a href={`/buscar?author=${article.users?.id}`} class="ml-1 text-sm font-medium text-[#2a2b2a] hover:text-[#a31621]">
-                    {article.users?.full_name}
+                  <a href={`/buscar?author=${article.profiles?.id}`} class="ml-1 text-sm font-medium text-[#2a2b2a] hover:text-[#a31621]">
+                    {article.profiles?.full_name || 'Autor desconocido'}
                   </a>
                 </div>
               </div>
@@ -155,6 +316,15 @@ if (query) {
           </article>
         ))}
       </div>
+      
+      <!-- Paginación -->
+      {totalPages > 1 && (
+        <Pagination 
+          currentPage={currentPage} 
+          totalPages={totalPages} 
+          baseUrl={baseUrl} 
+        />
+      )}
     </div>
   </main>
 </Layout>
