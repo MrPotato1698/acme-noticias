@@ -10,11 +10,11 @@ const { currentSort } = Astro.props;
   <h3 class="text-sm font-semibold text-[#2a2b2a] mb-2">Ordenar por</h3>
   <div class="space-y-2">
     <div class="flex items-center">
-      <input 
-        type="radio" 
-        id="sort-newest" 
-        name="sort" 
-        value="newest" 
+      <input
+        type="radio"
+        id="sort-newest"
+        name="sort"
+        value="newest"
         class="w-4 h-4 text-[#23b5d3] focus:ring-[#23b5d3]"
         checked={currentSort === 'newest'}
       />
@@ -23,11 +23,11 @@ const { currentSort } = Astro.props;
       </label>
     </div>
     <div class="flex items-center">
-      <input 
-        type="radio" 
-        id="sort-oldest" 
-        name="sort" 
-        value="oldest" 
+      <input
+        type="radio"
+        id="sort-oldest"
+        name="sort"
+        value="oldest"
         class="w-4 h-4 text-[#23b5d3] focus:ring-[#23b5d3]"
         checked={currentSort === 'oldest'}
       />
@@ -36,11 +36,11 @@ const { currentSort } = Astro.props;
       </label>
     </div>
     <div class="flex items-center">
-      <input 
-        type="radio" 
-        id="sort-relevance" 
-        name="sort" 
-        value="relevance" 
+      <input
+        type="radio"
+        id="sort-relevance"
+        name="sort"
+        value="relevance"
         class="w-4 h-4 text-[#23b5d3] focus:ring-[#23b5d3]"
         checked={currentSort === 'relevance'}
       />
