@@ -1,7 +1,8 @@
 ---
 interface Author {
-  id: number;
-  full_name: string;
+  id: string;
+  full_name: string | null;
+  email: string | null;
 }
 
 interface Props {
@@ -14,53 +15,54 @@ const { authors, currentAuthor } = Astro.props;
 
 <div class="mb-6">
   <h3 class="text-sm font-semibold text-[#2a2b2a] mb-2">Redactor</h3>
-  
+
   <div class="relative">
     <!-- Input de búsqueda -->
-    <input 
-      type="text" 
-      id="author-search" 
-      placeholder="Buscar redactor..." 
+    <input
+      type="text"
+      id="author-search"
+      placeholder="Buscar redactor..."
       class="w-full px-3 py-2 border border-[#2a2b2a]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#23b5d3]"
     />
-    
+
     <!-- Combobox dropdown -->
-    <div 
-      id="author-dropdown" 
+    <div
+      id="author-dropdown"
       class="absolute z-10 w-full mt-1 bg-white border border-[#2a2b2a]/10 rounded-md shadow-lg max-h-60 overflow-auto hidden"
     >
       <div class="p-2">
-        <div 
+        <div
           class="cursor-pointer px-3 py-2 hover:bg-[#fcf7f8] rounded-md text-sm author-option"
           data-author-id=""
         >
           Todos los redactores
         </div>
-        
+
         {authors.map((author) => (
-          <div 
+          <div
             class="cursor-pointer px-3 py-2 hover:bg-[#fcf7f8] rounded-md text-sm author-option"
-            data-author-id={author.id.toString()}
-            data-author-name={author.full_name}
+            data-author-id={author.id}
+            data-author-name={author.full_name || 'Sin nombre'}
           >
-            {author.full_name}
+            {author.full_name || 'Sin nombre'}
+            {author.email && <span class="text-[#2a2b2a]/60">({author.email})</span>}
           </div>
         ))}
       </div>
     </div>
-    
+
     <!-- Input oculto para almacenar el ID del autor seleccionado -->
-    <input 
-      type="hidden" 
-      id="selected-author-id" 
-      name="author" 
+    <input
+      type="hidden"
+      id="selected-author-id"
+      name="author"
       value={currentAuthor}
     />
-    
+
     <!-- Mostrar el autor seleccionado actualmente -->
     <div id="selected-author-display" class="mt-2 text-sm text-[#a31621]">
-      {currentAuthor && authors.find(a => a.id.toString() === currentAuthor)?.full_name 
-        ? `Filtrando por: ${authors.find(a => a.id.toString() === currentAuthor)?.full_name}` 
+      {currentAuthor && authors.find(a => a.id === currentAuthor)?.full_name 
+        ? `Filtrando por: ${authors.find(a => a.id === currentAuthor)?.full_name}` 
         : ''}
     </div>
   </div>

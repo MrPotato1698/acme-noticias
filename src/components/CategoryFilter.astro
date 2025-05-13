@@ -16,11 +16,11 @@ const { categories, currentCategory } = Astro.props;
   <h3 class="text-sm font-semibold text-[#2a2b2a] mb-2">Categorías</h3>
   <div class="space-y-2 max-h-48 overflow-y-auto pr-2">
     <div class="flex items-center">
-      <input 
-        type="radio" 
-        id="category-all" 
-        name="category" 
-        value="" 
+      <input
+        type="radio"
+        id="category-all"
+        name="category"
+        value=""
         class="w-4 h-4 text-[#23b5d3] focus:ring-[#23b5d3]"
         checked={currentCategory === ''}
       />
@@ -28,14 +28,14 @@ const { categories, currentCategory } = Astro.props;
         Todas las categorías
       </label>
     </div>
-    
+
     {categories.map((category) => (
       <div class="flex items-center">
-        <input 
-          type="radio" 
-          id={`category-${category.id}`} 
-          name="category" 
-          value={category.id.toString()} 
+        <input
+          type="radio"
+          id={`category-${category.id}`}
+          name="category"
+          value={category.id.toString()}
           class="w-4 h-4 text-[#23b5d3] focus:ring-[#23b5d3]"
           checked={currentCategory === category.id.toString()}
         />
