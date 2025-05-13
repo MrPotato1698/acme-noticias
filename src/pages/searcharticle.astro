@@ -1,0 +1,160 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Header from '@/components/Header.astro';
+import SearchSidebar from '@/components/SearchSidebar.astro';
+import { supabase } from '@/db/supabase';
+
+// Obtenemos los parámetros de búsqueda de la URL
+const url = Astro.url;
+const searchParams = url.searchParams;
+const query = searchParams.get('q') || '';
+const category = searchParams.get('category') || '';
+const author = searchParams.get('author') || '';
+const sort = searchParams.get('sort') || 'newest';
+
+// Construimos la consulta a Supabase
+let articlesQuery = supabase
+  .from('article')
+  .select('id, title, excerpt, published_at, categories(id, name), users(id, full_name, username)');
+
+// Aplicamos los filtros
+if (query) {
+  articlesQuery = articlesQuery.ilike('title', `%${query}%`);
+}
+
+if (category) {
+  articlesQuery = articlesQuery.eq('category_id', category);
+}
+
+if (author) {
+  articlesQuery = articlesQuery.eq('author_id', author);
+}
+
+// Aplicamos el ordenamiento
+if (sort === 'newest') {
+  articlesQuery = articlesQuery.order('published_at', { ascending: false });
+} else if (sort === 'oldest') {
+  articlesQuery = articlesQuery.order('published_at', { ascending: true });
+} else if (sort === 'relevance' && query) {
+  // Para ordenar por relevancia, podríamos usar una lógica más compleja
+  // Por ahora, simplemente ordenamos por título si la búsqueda es por relevancia
+  articlesQuery = articlesQuery.order('title');
+}
+
+// Ejecutamos la consulta
+const { data: articles, error } = await articlesQuery;
+
+// Título de la página basado en los filtros
+let pageTitle = 'Búsqueda de noticias';
+if (query) {
+  pageTitle = `Resultados para "${query}"`;
+}
+---
+
+<Layout title={pageTitle}>
+  <Header />
+  
+  <main class="flex flex-col md:flex-row min-h-screen bg-[#fcf7f8]">
+    <!-- Sidebar de búsqueda -->
+    <div class="w-full md:w-64 md:min-h-screen border-b md:border-b-0 md:border-r border-[#2a2b2a]/10">
+      <SearchSidebar />
+    </div>
+    
+    <!-- Contenido principal -->
+    <div class="flex-1 p-6">
+      <h1 class="text-2xl font-bold text-[#2a2b2a] mb-6">{pageTitle}</h1>
+      
+      <!-- Resumen de filtros aplicados -->
+      <div class="mb-6">
+        {(query || category || author || sort !== 'newest') && (
+          <div class="bg-[#fcf7f8] border border-[#2a2b2a]/10 rounded-md p-3">
+            <h2 class="text-sm font-semibold text-[#2a2b2a] mb-2">Filtros aplicados:</h2>
+            <div class="flex flex-wrap gap-2">
+              {query && (
+                <span class="inline-flex items-center px-2 py-1 rounded-md text-xs bg-[#23b5d3]/10 text-[#23b5d3]">
+                  Búsqueda: {query}
+                </span>
+              )}
+              
+              {category && (
+                <span class="inline-flex items-center px-2 py-1 rounded-md text-xs bg-[#a31621]/10 text-[#a31621]">
+                  Categoría: {articles?.[0]?.categories?.name || ''}
+                </span>
+              )}
+              
+              {author && (
+                <span class="inline-flex items-center px-2 py-1 rounded-md text-xs bg-[#ffbe0b]/10 text-[#2a2b2a]">
+                  Redactor: {articles?.[0]?.users?.full_name || ''}
+                </span>
+              )}
+              
+              {sort !== 'newest' && (
+                <span class="inline-flex items-center px-2 py-1 rounded-md text-xs bg-[#2a2b2a]/10 text-[#2a2b2a]">
+                  Orden: {sort === 'oldest' ? 'Más antiguas primero' : 'Relevancia'}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <!-- Resultados de la búsqueda -->
+      <div class="space-y-6">
+        {error && (
+          <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <p>Error al cargar los artículos. Por favor, intenta de nuevo.</p>
+          </div>
+        )}
+        
+        {articles && articles.length === 0 && (
+          <div class="text-center py-12">
+            <p class="text-lg text-[#2a2b2a]/70">No se encontraron resultados para tu búsqueda.</p>
+            <p class="mt-2 text-sm text-[#2a2b2a]/50">Intenta con otros términos o filtros.</p>
+          </div>
+        )}
+        
+        {articles && articles.map((article) => (
+          <article class="bg-white border border-[#2a2b2a]/10 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <div class="p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs px-2 py-0.5 bg-[#a31621]/10 text-[#a31621] rounded-full">
+                  {article.categories?.name}
+                </span>
+                <span class="text-xs text-[#2a2b2a]/60">
+                  {new Date(article.published_at).toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </span>
+              </div>
+              
+              <h2 class="text-xl font-bold text-[#2a2b2a] mb-2">
+                <a href={`/articulos/${article.id}`} class="hover:text-[#23b5d3] transition-colors">
+                  {article.title}
+                </a>
+              </h2>
+              
+              <p class="text-[#2a2b2a]/80 mb-4">
+                {article.excerpt}
+              </p>
+              
+              <div class="flex justify-between items-center">
+                <a href={`/articulos/${article.id}`} class="text-[#23b5d3] hover:underline">
+                  Leer más
+                </a>
+                
+                <div class="flex items-center">
+                  <span class="text-sm text-[#2a2b2a]/70">Por </span>
+                  <a href={`/buscar?author=${article.users?.id}`} class="ml-1 text-sm font-medium text-[#2a2b2a] hover:text-[#a31621]">
+                    {article.users?.full_name}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </main>
+</Layout>

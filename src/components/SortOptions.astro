@@ -1,0 +1,52 @@
+---
+interface Props {
+  currentSort: string;
+}
+
+const { currentSort } = Astro.props;
+---
+
+<div class="mb-6">
+  <h3 class="text-sm font-semibold text-[#2a2b2a] mb-2">Ordenar por</h3>
+  <div class="space-y-2">
+    <div class="flex items-center">
+      <input 
+        type="radio" 
+        id="sort-newest" 
+        name="sort" 
+        value="newest" 
+        class="w-4 h-4 text-[#23b5d3] focus:ring-[#23b5d3]"
+        checked={currentSort === 'newest'}
+      />
+      <label for="sort-newest" class="ml-2 text-sm text-[#2a2b2a]">
+        Más recientes primero
+      </label>
+    </div>
+    <div class="flex items-center">
+      <input 
+        type="radio" 
+        id="sort-oldest" 
+        name="sort" 
+        value="oldest" 
+        class="w-4 h-4 text-[#23b5d3] focus:ring-[#23b5d3]"
+        checked={currentSort === 'oldest'}
+      />
+      <label for="sort-oldest" class="ml-2 text-sm text-[#2a2b2a]">
+        Más antiguas primero
+      </label>
+    </div>
+    <div class="flex items-center">
+      <input 
+        type="radio" 
+        id="sort-relevance" 
+        name="sort" 
+        value="relevance" 
+        class="w-4 h-4 text-[#23b5d3] focus:ring-[#23b5d3]"
+        checked={currentSort === 'relevance'}
+      />
+      <label for="sort-relevance" class="ml-2 text-sm text-[#2a2b2a]">
+        Relevancia
+      </label>
+    </div>
+  </div>
+</div>
