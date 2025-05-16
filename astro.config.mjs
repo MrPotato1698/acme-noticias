@@ -9,4 +9,6 @@ export default defineConfig({
     plugins: [tailwindcss()]
   },
 
+  output: "server"
+
 });
