@@ -46,10 +46,10 @@ pagesToShow.sort((a, b) => a - b);
     <!-- Botón Anterior -->
     <li>
       <a 
-        href={currentPage > 1 ? getPageUrl(currentPage - 1) : '#'} 
-        class={`px-3 py-2 rounded-md ${currentPage > 1 
-          ? 'text-[#2a2b2a] hover:bg-[#23b5d3]/10 hover:text-[#23b5d3]' 
-          : 'text-[#2a2b2a]/40 cursor-not-allowed'}`}
+        href={currentPage > 1 ? getPageUrl(currentPage - 1) : '#'}
+        class={`px-3 py-2 rounded-md ${currentPage > 1
+          ? 'text-dark hover:bg-primary/10 hover:text-primary'
+          : 'text-dark/40 cursor-not-allowed'}`}
         aria-disabled={currentPage === 1}
         aria-label="Página anterior"
       >
@@ -57,35 +57,35 @@ pagesToShow.sort((a, b) => a - b);
         <span class="sr-only">Página anterior</span>
       </a>
     </li>
-    
+
     <!-- Primera página -->
     {showFirst && !pagesToShow.includes(1) && (
       <li>
-        <a 
-          href={getPageUrl(1)} 
-          class="px-3 py-2 rounded-md text-[#2a2b2a] hover:bg-[#23b5d3]/10 hover:text-[#23b5d3]"
+        <a
+          href={getPageUrl(1)}
+          class="px-3 py-2 rounded-md text-dark hover:bg-primary/10 hover:text-primary"
           aria-label="Página 1"
         >
           1
         </a>
       </li>
     )}
-    
+
     <!-- Elipsis anterior -->
     {showPrevEllipsis && (
       <li>
-        <span class="px-3 py-2 text-[#2a2b2a]/60">...</span>
+        <span class="px-3 py-2 text-dark/60">...</span>
       </li>
     )}
-    
+
     <!-- Páginas numeradas -->
     {pagesToShow.map(page => (
       <li>
-        <a 
-          href={getPageUrl(page)} 
-          class={`px-3 py-2 rounded-md ${page === currentPage 
-            ? 'bg-[#a31621] text-white font-medium' 
-            : 'text-[#2a2b2a] hover:bg-[#23b5d3]/10 hover:text-[#23b5d3]'}`}
+        <a
+          href={getPageUrl(page)}
+          class={`px-3 py-2 rounded-md ${page === currentPage
+            ? 'bg-primary text-white font-medium'
+            : 'text-dark hover:bg-dark/10 hover:text-primary'}`}
           aria-label={`Página ${page}`}
           aria-current={page === currentPage ? 'page' : undefined}
         >
@@ -93,34 +93,34 @@ pagesToShow.sort((a, b) => a - b);
         </a>
       </li>
     ))}
-    
+
     <!-- Elipsis posterior -->
     {showNextEllipsis && (
       <li>
-        <span class="px-3 py-2 text-[#2a2b2a]/60">...</span>
+        <span class="px-3 py-2 text-dark/60">...</span>
       </li>
     )}
-    
+
     <!-- Última página -->
     {showLast && !pagesToShow.includes(totalPages) && (
       <li>
-        <a 
-          href={getPageUrl(totalPages)} 
-          class="px-3 py-2 rounded-md text-[#2a2b2a] hover:bg-[#23b5d3]/10 hover:text-[#23b5d3]"
+        <a
+          href={getPageUrl(totalPages)}
+          class="px-3 py-2 rounded-md text-dark hover:bg-primary/10 hover:text-primary"
           aria-label={`Página ${totalPages}`}
         >
           {totalPages}
         </a>
       </li>
     )}
-    
+
     <!-- Botón Siguiente -->
     <li>
-      <a 
-        href={currentPage < totalPages ? getPageUrl(currentPage + 1) : '#'} 
-        class={`px-3 py-2 rounded-md ${currentPage < totalPages 
-          ? 'text-[#2a2b2a] hover:bg-[#23b5d3]/10 hover:text-[#23b5d3]' 
-          : 'text-[#2a2b2a]/40 cursor-not-allowed'}`}
+      <a
+        href={currentPage < totalPages ? getPageUrl(currentPage + 1) : '#'}
+        class={`px-3 py-2 rounded-md ${currentPage < totalPages
+          ? 'text-dark hover:bg-primary/10 hover:text-primary'
+          : 'text-dark/40 cursor-not-allowed'}`}
         aria-disabled={currentPage === totalPages}
         aria-label="Página siguiente"
       >
