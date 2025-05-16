@@ -7,7 +7,7 @@ const { currentSort } = Astro.props;
 ---
 
 <div class="mb-6">
-  <h3 class="text-sm font-semibold text-[#2a2b2a] mb-2">Ordenar por</h3>
+  <h3 class="text-sm font-semibold text-dark mb-2">Ordenar por</h3>
   <div class="space-y-2">
     <div class="flex items-center">
       <input
@@ -15,10 +15,10 @@ const { currentSort } = Astro.props;
         id="sort-newest"
         name="sort"
         value="newest"
-        class="w-4 h-4 text-[#23b5d3] focus:ring-[#23b5d3]"
+        class="w-4 h-4 text-primary focus:ring-primary"
         checked={currentSort === 'newest'}
       />
-      <label for="sort-newest" class="ml-2 text-sm text-[#2a2b2a]">
+      <label for="sort-newest" class="ml-2 text-sm text-dark">
         Más recientes primero
       </label>
     </div>
@@ -28,10 +28,10 @@ const { currentSort } = Astro.props;
         id="sort-oldest"
         name="sort"
         value="oldest"
-        class="w-4 h-4 text-[#23b5d3] focus:ring-[#23b5d3]"
+        class="w-4 h-4 text-primary focus:ring-primary"
         checked={currentSort === 'oldest'}
       />
-      <label for="sort-oldest" class="ml-2 text-sm text-[#2a2b2a]">
+      <label for="sort-oldest" class="ml-2 text-sm text-dark">
         Más antiguas primero
       </label>
     </div>
@@ -41,10 +41,10 @@ const { currentSort } = Astro.props;
         id="sort-relevance"
         name="sort"
         value="relevance"
-        class="w-4 h-4 text-[#23b5d3] focus:ring-[#23b5d3]"
+        class="w-4 h-4 text-primary focus:ring-primary"
         checked={currentSort === 'relevance'}
       />
-      <label for="sort-relevance" class="ml-2 text-sm text-[#2a2b2a]">
+      <label for="sort-relevance" class="ml-2 text-sm text-dark">
         Relevancia
       </label>
     </div>
