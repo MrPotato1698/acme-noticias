@@ -1,7 +1,7 @@
 ---
 export interface Props {
   title: string;
-  summary?: string;
+  summary: string;
   image: string;
   date: string;
   author: string;
@@ -10,7 +10,7 @@ export interface Props {
   featured?: boolean;
 }
 
-const { title, summary = '', image, date, author, url, tags, featured = false} = Astro.props;
+const { title, summary, image, date, author, url, tags, featured = false} = Astro.props;
 
 const imageFeatured = featured ? 'h-70' : 'h-40';
 const titleFeatured = featured ? 'text-2xl line-clamp-3' : 'text-lg line-clamp-2';
@@ -21,7 +21,7 @@ const summaryFeatured = featured ? 'text-base line-clamp-3' : 'text-sm line-clam
 	<div class="p-4 flex flex-col justify-between flex-1">
 		<div class="mb-2">
 			<div class="flex flex-wrap gap-2 mb-2">
-				{tags?.map((tag, i) => (
+				{tags.map((tag, i) => (
 					<span class="text-xs px-2 py-0.5 bg-[#a31621]/10 text-[#a31621] rounded-full">{tag}</span>
 				))}
 			</div>

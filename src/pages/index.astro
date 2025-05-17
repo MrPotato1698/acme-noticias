@@ -6,25 +6,23 @@ import { supabase } from '@/db/supabase';
 /*
 TO DO:
 - Manejar errores
-- Mostrar correctamente el autor (inner join)
-- Mostrar correctamente tags
+- Mostrar tags (más de 1)
 - Comprobar URLS
 - Lógica imágenes
 - Lógica evitar duplicados
 - Ver más.. en categorías
 */
 
-// Consulta artículos
-const { data: articles} = await supabase
-  .from('article')
-  .select('*')
-  .order('timestamp', { ascending: false })
-  .limit(5);
-
 // Consulta artículos con sus categorías
 const {data: articleCategories} = await supabase
 	.from('articlecategories')
-	.select('category!inner(id, name), article!inner(*)');
+	.select('category!inner(id, name), article!inner(id, title, body, timestamp, author!inner(full_name))');
+
+// Ordenar por fecha más reciente
+articleCategories?.sort((a, b) => new Date(b.article.timestamp).getTime() - new Date(a.article.timestamp).getTime());
+
+// Tomar los 5 primeros (5 más recientes)
+const lastArticles = articleCategories?.slice(0, 5);
 
 // Definir registro y sus tipos
 type Value = { category: string; articles: any[] };
@@ -44,12 +42,10 @@ for (const obj of articleCategories || []) {
   record[categoryName].articles.push(obj.article);
 }
 
-// Convertir registro en un array y transformarlo (ordenarlo y tomar 3)
+// Convertir registro en un array y transformarlo (tomar 3)
 const articlesByCategory = Object.values(record).map(cat => ({
-  ...cat, // Copia el objeto original
-  articles: cat.articles // Sobrescribe la lista de artículos (por una ordenada y limitada)
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 3)
+	...cat, // Copia el objeto original
+	articles: cat.articles.slice(0, 3)// Sobrescribe la lista de artículos
 }));
 ---
 
@@ -59,18 +55,18 @@ const articlesByCategory = Object.values(record).map(cat => ({
 		<h2 class="text-5xl font-semibold mb-3">Últimas noticias</h2>
 		<!-- LAST NEWS (FEATURED) -->
 		<div class="grid grid-cols-2 grid-rows-6 gap-4">
-			{articles?.slice(0, 2).map((article, i) => {
+			{lastArticles?.slice(0, 2).map((article, i) => {
 				const rowStart = 1 + i * 3;
 				return (
 					<div class={`col-start-1 col-span-1 row-span-3 row-start-${rowStart}`}>
 						<ArticleCard
-							title={article.title}
-							summary={article.body}
+							title={article.article.title}
+							summary={article.article.body}
 							image="/testIndex.png"
-							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-							author={article.author}
-							url={`/articulos/${article.id}`}
-							tags={["test1", "test2"]}
+							date={new Date(article.article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+							author={article.article.author?.full_name ?? "Anónimo"}
+							url={`/articulos/${article.article.id}`}
+							tags={[article.category.name]}
 							featured={true}
 						/>
 					</div>
@@ -78,18 +74,18 @@ const articlesByCategory = Object.values(record).map(cat => ({
 			})}
 			
 			<!-- LAST NEWS (NOT FEATURED) -->
-			{articles?.slice(2, 5).map((article, i) => {
+			{lastArticles?.slice(2, 5).map((article, i) => {
 				const rowStart = 1 + i * 2;
 				return (
 					<div class={`col-start-2 col-span-1 row-span-2 row-start-${rowStart}`}>
 						<ArticleCard
-							title={article.title}
-							summary={article.body}
+							title={article.article.title}
+							summary={article.article.body}
 							image="/testIndex.png"
-							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-							author={article.author}
-							url={`/articulos/${article.id}`}
-							tags={["test1", "test2"]}
+							date={new Date(article.article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+							author={article.article.author?.full_name ?? "Anónimo"}
+							url={`/articulos/${article.article.id}`}
+							tags={[article.category.name]}
 						/>
 					</div>
 				)
@@ -109,9 +105,9 @@ const articlesByCategory = Object.values(record).map(cat => ({
 							summary={article.body}
 							image="/testIndex.png"
 							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-							author={article.author}
+							author={article.author?.full_name ?? "Anónimo"}
 							url={`/articulos/${article.id}`}
-							tags={["test1", "test2"]}
+							tags={[category.category]}
 						/>
 					</div>
 				)})}
