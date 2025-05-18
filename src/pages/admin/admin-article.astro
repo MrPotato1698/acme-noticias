@@ -8,8 +8,21 @@ const { data: articles } = await supabase.from("article").select(`
             body,
             timestamp,
             author,
-            profiles!article_author_fkey(id,full_name,email)        
+            profiles!article_author_fkey(id,full_name,email),
+            articlecategories(
+            category(
+            name))
     `);
+
+function converTimestamp(timestamp: string): string {
+    const date = new Date(timestamp);
+    const formatter = new Intl.DateTimeFormat("es", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+    });
+    return formatter.format(date);
+}
 ---
 
 <Layout>
@@ -52,17 +65,28 @@ const { data: articles } = await supabase.from("article").select(`
                     {
                         articles?.map((article) => (
                             <tr class="hover:bg-gray-50">
-                                <td class="p-3 border-b border-gray-100 font-medium max-w-xs">
+                                <td class="p-3 border-b border-gray-100 font-medium max-w-xs text-s">
                                     {article.title}
                                 </td>
                                 <td class="p-3 border-b border-gray-100">
-                                    {article.author}
+                                    {article.profiles.full_name}
                                 </td>
                                 <td class="p-3 border-b border-gray-100">
-                                    <div class="flex flex-wrap gap-1">None</div>
+                                    <div class="flex flex-wrap gap-1">
+                                        {article.articlecategories?.map(
+                                            (ac, index) => (
+                                                <span
+                                                    data-index={index}
+                                                    class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded"
+                                                >
+                                                    {ac.category.name}
+                                                </span>
+                                            ),
+                                        )}
+                                    </div>
                                 </td>
                                 <td class="p-3 border-b border-gray-100">
-                                    {article.timestamp}
+                                    {converTimestamp(article.timestamp)}
                                 </td>
                                 <td class="p-3 border-b border-gray-100 whitespace-nowrap">
                                     <button
