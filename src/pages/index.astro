@@ -5,11 +5,10 @@ import { supabase } from '@/db/supabase';
 
 /*
 TO DO:
-- Manejar errores
-- Mostrar tags (más de 1)
+- CORREGIR GRID
+- Refactorizar y manejar errores
 - Comprobar URLS
 - Lógica imágenes
-- Lógica evitar duplicados
 - Ver más.. en categorías
 */
 
@@ -18,19 +17,33 @@ const {data: articleCategories} = await supabase
 	.from('articlecategories')
 	.select('category!inner(id, name), article!inner(id, title, body, timestamp, author!inner(full_name))');
 
+// Agregar atributo tags para categorías extras
+articleCategories?.forEach(obj => {
+  (obj.article as any).tags = [];
+});
+
 // Ordenar por fecha más reciente
 articleCategories?.sort((a, b) => new Date(b.article.timestamp).getTime() - new Date(a.article.timestamp).getTime());
 
-// Tomar los 5 primeros (5 más recientes)
-const lastArticles = articleCategories?.slice(0, 5);
-
-// Definir registro y sus tipos
+// Crear un Record para agrupar artículos y sus tipos
 type Value = { category: string; articles: any[] };
 const record: Record<string, Value> = {};
 
-// Agrupar en cada categoría (key) su nombre y el artículo (value)
-for (const obj of articleCategories || []) {
+// Crear un Map para registrar los artículos ya agregados y acceder a ellos por id
+const addedArticles = new Map<number, any>();
+
+// Agrupar en cada categoría (key) su nombre y el artículo (value), evitando duplicados
+for (const obj of articleCategories as any|| []) {
+	const article = obj.article;
+	const articleId = article.id;
 	const categoryName = obj.category.name;
+
+	if (addedArticles.has(articleId)) {
+		// Si ya fue añadido, añadir esta categoría a los tags del artículo existente
+		const existingArticle = addedArticles.get(articleId);
+		existingArticle.tags.push(categoryName);
+    	continue;
+	}
 
 	if (!record[categoryName]) {
 		record[categoryName] = {
@@ -39,8 +52,13 @@ for (const obj of articleCategories || []) {
 		};
 	}
 
-  record[categoryName].articles.push(obj.article);
+	article.tags.push(categoryName);
+	record[categoryName].articles.push(article);
+	addedArticles.set(articleId, article);
 }
+
+// Tomar los 5 primeros del mapa de añadidos (que serán los más recientes al haber sido ordenados previamente)
+const lastArticles = Array.from(addedArticles.values()).slice(0, 5);
 
 // Convertir registro en un array y transformarlo (tomar 3)
 const articlesByCategory = Object.values(record).map(cat => ({
@@ -60,13 +78,13 @@ const articlesByCategory = Object.values(record).map(cat => ({
 				return (
 					<div class={`col-start-1 col-span-1 row-span-3 row-start-${rowStart}`}>
 						<ArticleCard
-							title={article.article.title}
-							summary={article.article.body}
+							title={article.title}
+							summary={article.body}
 							image="/testIndex.png"
-							date={new Date(article.article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-							author={article.article.author?.full_name ?? "Anónimo"}
-							url={`/articulos/${article.article.id}`}
-							tags={[article.category.name]}
+							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+							author={article.author?.full_name ?? "Anónimo"}
+							url={`/articulos/${article.id}`}
+							tags={article.tags}
 							featured={true}
 						/>
 					</div>
@@ -79,13 +97,13 @@ const articlesByCategory = Object.values(record).map(cat => ({
 				return (
 					<div class={`col-start-2 col-span-1 row-span-2 row-start-${rowStart}`}>
 						<ArticleCard
-							title={article.article.title}
-							summary={article.article.body}
+							title={article.title}
+							summary={article.body}
 							image="/testIndex.png"
-							date={new Date(article.article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-							author={article.article.author?.full_name ?? "Anónimo"}
-							url={`/articulos/${article.article.id}`}
-							tags={[article.category.name]}
+							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+							author={article.author?.full_name ?? "Anónimo"}
+							url={`/articulos/${article.id}`}
+							tags={article.tags}
 						/>
 					</div>
 				)
@@ -107,7 +125,7 @@ const articlesByCategory = Object.values(record).map(cat => ({
 							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
 							author={article.author?.full_name ?? "Anónimo"}
 							url={`/articulos/${article.id}`}
-							tags={[category.category]}
+							tags={article.tags}
 						/>
 					</div>
 				)})}
