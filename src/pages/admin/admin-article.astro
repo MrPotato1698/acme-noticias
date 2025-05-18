@@ -1,86 +1,81 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import { supabase } from "../../db/supabase";
 
-// Mock data - replace with your actual data fetching logic
-const articles = [
-    {
-        id: "1",
-        title: "Building Modern Web Apps with Astro",
-        author: "Jane Doe",
-        types: ["Technology", "Web Development"],
-        publishedAt: new Date("2025-04-15T14:30:00"),
-    },
-    {
-        id: "2",
-        title: "The Future of AI in Healthcare",
-        author: "John Smith",
-        types: ["Health", "Technology", "AI"],
-        publishedAt: new Date("2025-05-10T09:15:00"),
-    },
-    {
-        id: "3",
-        title: "Sustainable Living: A Practical Guide",
-        author: "Maria Garcia",
-        types: ["Lifestyle", "Environment"],
-        publishedAt: new Date("2025-05-12T16:45:00"),
-    },
-];
-
-// Function to format date
-function formatDate(date: Date) {
-    return new Intl.DateTimeFormat("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    }).format(date);
-}
+const { data: articles } = await supabase.from("article").select(`
+            id,
+            title,
+            body,
+            timestamp,
+            author,
+            profiles!article_author_fkey(id,full_name,email)        
+    `);
 ---
 
 <Layout>
-    <div class="admin-container">
-        <h1 class="admin-title">Article Management</h1>
+    <div class="max-w-7xl mx-auto py-8 px-4">
+        <h1 class="text-2xl mb-6 text-gray-800 font-bold">
+            Administración de artículos
+        </h1>
 
-        <div class="table-actions">
-            <button class="btn btn-primary">Add New Article</button>
+        <div class="flex justify-end mb-4">
+            <!-- Add a new article button if needed -->
         </div>
 
-        <div class="table-container">
-            <table class="article-table">
+        <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+            <table class="w-full border-collapse">
                 <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>Author</th>
-                        <th>Categories</th>
-                        <th>Published</th>
-                        <th>Actions</th>
+                        <th
+                            class="p-3 text-left bg-gray-50 font-semibold border-b border-gray-100"
+                            >Título</th
+                        >
+                        <th
+                            class="p-3 text-left bg-gray-50 font-semibold border-b border-gray-100"
+                            >Autor</th
+                        >
+                        <th
+                            class="p-3 text-left bg-gray-50 font-semibold border-b border-gray-100"
+                            >Categorias</th
+                        >
+                        <th
+                            class="p-3 text-left bg-gray-50 font-semibold border-b border-gray-100"
+                            >Fecha de publicación</th
+                        >
+                        <th
+                            class="p-3 text-left bg-gray-50 font-semibold border-b border-gray-100"
+                            >Acciones</th
+                        >
                     </tr>
                 </thead>
                 <tbody>
                     {
-                        articles.map((article) => (
-                            <tr>
-                                <td class="title-cell">{article.title}</td>
-                                <td>{article.author}</td>
-                                <td class="tags-cell">
-                                    {article.types.map((type) => (
-                                        <span class="tag">{type}</span>
-                                    ))}
+                        articles?.map((article) => (
+                            <tr class="hover:bg-gray-50">
+                                <td class="p-3 border-b border-gray-100 font-medium max-w-xs">
+                                    {article.title}
                                 </td>
-                                <td>{formatDate(article.publishedAt)}</td>
-                                <td class="actions-cell">
+                                <td class="p-3 border-b border-gray-100">
+                                    {article.author}
+                                </td>
+                                <td class="p-3 border-b border-gray-100">
+                                    <div class="flex flex-wrap gap-1">None</div>
+                                </td>
+                                <td class="p-3 border-b border-gray-100">
+                                    {article.timestamp}
+                                </td>
+                                <td class="p-3 border-b border-gray-100 whitespace-nowrap">
                                     <button
-                                        class="btn btn-edit"
+                                        class="border-none rounded px-3 py-1.5 text-sm cursor-pointer font-medium transition-colors bg-sky-50 text-sky-600 hover:bg-sky-100 mr-2"
                                         data-id={article.id}
                                     >
-                                        Edit
+                                        Editar
                                     </button>
                                     <button
-                                        class="btn btn-delete"
+                                        class="border-none rounded px-3 py-1.5 text-sm cursor-pointer font-medium transition-colors bg-red-50 text-red-600 hover:bg-red-100"
                                         data-id={article.id}
                                     >
-                                        Delete
+                                        Borrar
                                     </button>
                                 </td>
                             </tr>
@@ -91,140 +86,3 @@ function formatDate(date: Date) {
         </div>
     </div>
 </Layout>
-
-<style>
-    .admin-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }
-
-    .admin-title {
-        font-size: 1.8rem;
-        margin-bottom: 1.5rem;
-        color: #333;
-    }
-
-    .table-actions {
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: 1rem;
-    }
-
-    .table-container {
-        overflow-x: auto;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .article-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    .article-table th,
-    .article-table td {
-        padding: 0.8rem 1rem;
-        text-align: left;
-        border-bottom: 1px solid #eee;
-    }
-
-    .article-table th {
-        background-color: #f7f7f7;
-        font-weight: 600;
-    }
-
-    .article-table tr:hover {
-        background-color: #f9f9f9;
-    }
-
-    .title-cell {
-        font-weight: 500;
-        max-width: 300px;
-    }
-
-    .tags-cell {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-    }
-
-    .tag {
-        background-color: #e9f2fe;
-        color: #2563eb;
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        display: inline-block;
-    }
-
-    .actions-cell {
-        white-space: nowrap;
-    }
-
-    .btn {
-        border: none;
-        border-radius: 4px;
-        padding: 0.4rem 0.8rem;
-        font-size: 0.875rem;
-        cursor: pointer;
-        font-weight: 500;
-        transition: background-color 0.2s;
-    }
-
-    .btn-primary {
-        background-color: #2563eb;
-        color: white;
-        padding: 0.5rem 1rem;
-    }
-
-    .btn-primary:hover {
-        background-color: #1d4ed8;
-    }
-
-    .btn-edit {
-        background-color: #f0f9ff;
-        color: #0284c7;
-        margin-right: 0.5rem;
-    }
-
-    .btn-edit:hover {
-        background-color: #e0f2fe;
-    }
-
-    .btn-delete {
-        background-color: #fef2f2;
-        color: #dc2626;
-    }
-
-    .btn-delete:hover {
-        background-color: #fee2e2;
-    }
-</style>
-
-<script>
-    // Client-side functionality
-    document.addEventListener("DOMContentLoaded", () => {
-        // Edit button functionality
-        document.querySelectorAll(".btn-edit").forEach((button) => {
-            button.addEventListener("click", () => {
-                const articleId = button.getAttribute("data-id");
-                window.location.href = `/admin/edit-article?id=${articleId}`;
-            });
-        });
-
-        // Delete button functionality
-        document.querySelectorAll(".btn-delete").forEach((button) => {
-            button.addEventListener("click", () => {
-                const articleId = button.getAttribute("data-id");
-                if (confirm("Are you sure you want to delete this article?")) {
-                    // Replace with actual delete logic
-                    console.log(`Delete article with ID: ${articleId}`);
-                    // After successful deletion, you might want to refresh the page
-                    // or remove the row from the table
-                }
-            });
-        });
-    });
-</script>
