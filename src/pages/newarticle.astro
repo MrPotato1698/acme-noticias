@@ -1,0 +1,318 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { supabase } from "@/db/supabase";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  return redirect("/login");
+}
+
+// Set the session with the cookies
+const { data: dataAuth, error: errorAuth } = await supabase.auth.setSession({
+  refresh_token: refreshToken.value,
+  access_token: accessToken.value,
+});
+
+// If there is an error, delete the cookies and redirect to login
+if (errorAuth) {
+  cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+
+  return redirect("/login");
+}
+
+const idAuth = dataAuth?.user?.id || "";
+
+const { data: roleData } = await supabase
+  .from("profiles")
+  .select("rol")
+  .eq("id", idAuth)
+  .single();
+
+if (roleData == null || roleData.rol == null || roleData.rol < 1) {
+  return redirect("/index");
+}
+
+const { data: categoriesData, error: categoriesError } = await supabase
+  .from("category")
+  .select("*");
+
+if (categoriesError) {
+  console.error("Error fetching categories:", categoriesError);
+  return;
+}
+---
+
+<Layout>
+  <div class="container mx-auto px-4">
+    <h1 class="text-4xl font-bold mb-4">Nuevo Articulo</h1>
+
+    <form
+      action="/api/article/newarticle"
+      method="POST"
+      class="space-y-4"
+      id="articleForm"
+    >
+      <div>
+        <label for="title" class="block text-xl font-medium text-gray-700 mb-1"
+          >Título</label
+        >
+        <input
+          type="text"
+          id="title"
+          name="title"
+          required
+          class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+        />
+      </div>
+
+      <div>
+        <label
+          for="content"
+          class="block text-xl font-medium text-gray-700 mb-1">Contenido</label
+        >
+        <textarea
+          id="content"
+          name="content"
+          rows="6"
+          required
+          class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+        ></textarea>
+      </div>
+
+      <div>
+        <label class="block text-xl font-medium text-gray-700 mb-1"
+          >Categorías</label
+        >
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {
+            categoriesData?.map((category) => (
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  id={`category-${category.id}`}
+                  name="categories[]"
+                  value={category.id}
+                  class="mr-2 h-5 w-5 text-blue-600"
+                />
+                <label for={`category-${category.id}`} class="text-gray-700">
+                  {category.name}
+                </label>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xl font-medium text-gray-700 mb-1"
+          >Imágenes</label
+        >
+        <div
+          id="dropzone"
+          class="flex items-center justify-center w-full h-32 border-2 border-dashed border-blue-400 rounded-md bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
+        >
+          <div class="text-center">
+            <p class="text-blue-600 font-medium">
+              Arrastra y suelta imágenes aquí o haz clic para seleccionar
+            </p>
+            <p class="text-sm text-gray-500">Solo se aceptan imágenes</p>
+          </div>
+        </div>
+        <input
+          type="file"
+          id="images"
+          name="images"
+          accept="image/*"
+          class="hidden"
+        />
+        <div id="preview" class="flex flex-wrap gap-2 mt-2"></div>
+      </div>
+
+      <input type="hidden" name="user_id" value={idAuth} />
+      <input type="hidden" name="imgurl" id="imgurl" value="" />
+
+      <button
+        type="submit"
+        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition"
+      >
+        Publicar Artículo
+      </button>
+    </form>
+  </div>
+
+  <script is:inline>
+    document.addEventListener("DOMContentLoaded", () => {
+      const form = document.getElementById("articleForm");
+      const dropzone = document.getElementById("dropzone");
+      const input = document.getElementById("images");
+      const preview = document.getElementById("preview");
+      const imgurlInput = document.getElementById("imgurl");
+
+      if (!form || !dropzone || !input || !preview || !imgurlInput) {
+        console.error("No se encontraron elementos del DOM");
+        return;
+      }
+
+      // Manejo del dropzone
+      dropzone.addEventListener("click", () => input.click());
+
+      dropzone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropzone.classList.add("bg-blue-100");
+      });
+
+      dropzone.addEventListener("dragleave", () => {
+        dropzone.classList.remove("bg-blue-100");
+      });
+
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("bg-blue-100");
+        input.files = e.dataTransfer.files;
+        showPreview(input.files);
+      });
+
+      input.addEventListener("change", () => {
+        showPreview(input.files);
+      });
+
+      // Mostrar vista previa de imágenes
+      function showPreview(files) {
+        preview.innerHTML = "";
+        Array.from(files).forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = document.createElement("img");
+            img.src = e.target.result;
+            img.className = "h-20 rounded shadow border";
+            preview.appendChild(img);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      // Función para convertir imagen a webp
+      function fileToImage(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = e.target.result;
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function imageToWebpBlob(img, quality = 0.8) {
+        return new Promise((resolve, reject) => {
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              reject(new Error("No se pudo obtener el contexto 2d"));
+              return;
+            }
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  resolve(blob);
+                } else {
+                  reject(new Error("No se pudo crear el blob"));
+                }
+              },
+              "image/webp",
+              quality
+            );
+          } catch (error) {
+            reject(error);
+          }
+        });
+      }
+
+      // Manejar submit del formulario
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        try {
+          if (!input.files || input.files.length === 0) {
+            alert("Debes seleccionar al menos una imagen");
+            return;
+          }
+
+          // Procesar imagen
+          const file = input.files[0];
+
+          // Convertir imagen a webp
+          const img = await fileToImage(file);
+          const webpBlob = await imageToWebpBlob(img, 0.7);
+          // Crear File a partir del Blob
+          const timestamp = Date.now();
+          const baseName = file.name.replace(/\.[^.]+$/, ""); // Eliminar extensión
+          const fileName = `${timestamp}_${baseName}.webp`;
+          const webpFile = new File([webpBlob], fileName, {
+            type: "image/webp",
+          });
+
+          // Crear FormData para subir la imagen
+          const imageFormData = new FormData();
+          imageFormData.append("images", webpFile);
+
+          // Subir imagen a API
+          const uploadRes = await fetch("/api/article/uploadimage", {
+            method: "POST",
+            body: imageFormData,
+          });
+
+          if (!uploadRes.ok) {
+            const errorText = await uploadRes.text();
+            throw new Error(`Error al subir la imagen: ${errorText}`);
+          }
+
+          // Obtener URL pública
+          const uploadData = await uploadRes.json();
+
+          if (!uploadData.publicUrl) {
+            throw new Error("No se pudo obtener la URL de la imagen");
+          }
+
+          // Establecer imgurl en el campo oculto
+          imgurlInput.value = uploadData.publicUrl;
+          // Enviar el formulario mediante fetch para poder mostrar confirmación
+          const formData = new FormData(form);
+          const response = await fetch(form.action, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (response.ok) {
+            alert("¡Artículo creado correctamente!");
+            window.location.href = "/";
+          } else {
+            const errorText = await response.text();
+            throw new Error(`Error al crear el artículo: ${errorText}`);
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          alert(
+            "Error al procesar la solicitud. Consulta la consola para más detalles."
+          );
+        }
+      });
+    });
+  </script>
+</Layout>
