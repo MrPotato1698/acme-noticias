@@ -4,7 +4,7 @@ import ArticleCard from '@/components/ArticleCard.astro';
 import { supabase } from '@/db/supabase';
 
 /*
-TO DO:
+TODO:
 - CORREGIR GRID
 - Refactorizar y manejar errores
 */
@@ -12,7 +12,14 @@ TO DO:
 // Consulta artículos con sus categorías
 const {data: articleCategories} = await supabase
 	.from('articlecategories')
-	.select('category!inner(id, name), article!inner(id, title, body, timestamp, author!inner(full_name))');
+	.select('category!inner(id, name), article!inner(id, title, body, timestamp, author!inner(full_name), imgurl)');
+
+// Consulta artículos más recientes
+	const {data: lastArticlesData } = await supabase
+	.from('article')
+	.select('id, title, body, timestamp, author!inner(full_name), imgurl')
+	.order('timestamp', { ascending: false })
+	.limit(5);
 
 // Agregar atributo tags para categorías extras
 articleCategories?.forEach(obj => {
@@ -39,7 +46,7 @@ for (const obj of articleCategories as any|| []) {
 		// Si ya fue añadido, añadir esta categoría a los tags del artículo existente
 		const existingArticle = addedArticles.get(articleId);
 		existingArticle.tags.push(categoryN);
-    	continue;
+    continue;
 	}
 
 	if (!record[categoryN]) {
@@ -55,9 +62,6 @@ for (const obj of articleCategories as any|| []) {
 	addedArticles.set(articleId, article);
 }
 
-// Tomar los 5 primeros del mapa de añadidos (que serán los más recientes al haber sido ordenados previamente)
-const lastArticles = Array.from(addedArticles.values()).slice(0, 5);
-
 // Convertir registro en un array y transformarlo (tomar 3)
 const articlesByCategory = Object.values(record).map(cat => ({
 	...cat, // Copia el objeto original
@@ -66,12 +70,11 @@ const articlesByCategory = Object.values(record).map(cat => ({
 ---
 
 <Layout>
-	
 	<main class="bg-[#fcf7f8] p-10">
 		<h2 class="text-5xl font-semibold mb-3">Últimas noticias</h2>
-		<!-- LAST NEWS (FEATURED) -->
-		<div class="grid grid-cols-2 grid-rows-6 gap-4">
-			{lastArticles?.slice(0, 2).map((article, i) => {
+		<!-- Ultimas Noticias (Ultima Hora) -->
+		<!-- <div class="grid grid-cols-2 grid-rows-6 gap-4"> -->
+			<!-- {lastArticles?.slice(0, 2).map((article, i) => {
 				const rowStart = 1 + i * 3;
 				return (
 					<div class={`col-start-1 col-span-1 row-span-3 row-start-${rowStart}`}>
@@ -88,8 +91,8 @@ const articlesByCategory = Object.values(record).map(cat => ({
 					</div>
 				)
 			})}
-			
-			<!-- LAST NEWS (NOT FEATURED) -->
+
+			<!-- Ultimas Noticias (No Ultima Hora) --><!--
 			{lastArticles?.slice(2, 5).map((article, i) => {
 				const rowStart = 1 + i * 2;
 				return (
@@ -105,10 +108,51 @@ const articlesByCategory = Object.values(record).map(cat => ({
 						/>
 					</div>
 				)
-			})}
+			})} -->
+
+			<div class="grid grid-cols-2 grid-rows-3 gap-4">
+			{
+				lastArticlesData?.map(((article, i) => {
+					let divClass = "";
+					switch(i) {
+						case 0:
+							divClass = "col-span-2";
+							break;
+						case 1:
+							divClass = 'row-start-2';
+							break;
+						case 2:
+							divClass = 'row-start-2';
+							break;
+							case 3:
+							divClass = 'row-start-3';
+							break;
+							case 4:
+							divClass = 'row-start-3';
+							break;
+					}
+					return (
+						<div class={divClass}>
+							{console.log('Entra a forEach')}
+							<ArticleCard
+								title={`Principal ${article.title}`}
+								summary={article.body}
+								image={article.imgurl ?? ''}
+								date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+								author={article.author?.full_name ?? "Anónimo"}
+								url={`/articulos/${article.id}`}
+								tags={
+									[articleCategories?.find((obj) => obj.article.id === article.id)?.category?.name
+									].filter((tag): tag is string => typeof tag === 'string')
+								}
+							/>
+						</div>
+					)
+				}))
+			}
 		</div>
 
-		<!-- CATEGORIES -->
+		<!-- Categorías -->
 		{articlesByCategory.map((category, i) => (
 			<div class="flex justify-between items-center mb-3 mt-6">
 				<h2 class="text-3xl font-semibold">{category.categoryName}</h2>
