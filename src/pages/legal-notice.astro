@@ -1,0 +1,25 @@
+---
+import Welcome from "@/components/Welcome.astro";
+import Layout from "@/layouts/Layout.astro";
+
+// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
+// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+---
+
+<Layout>
+    <div class="bg-yellow-100 border-l-4 border-yellow-500 p-6 rounded-lg shadow-lg animate-pulse mb-8">
+        <p class="text-lg font-bold text-yellow-800 mb-4 flex items-center gap-2">
+            <svg class="w-6 h-6 text-yellow-500 animate-bounce" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
+            </svg>
+            Esta página ha sido desarrollada por el equipo de IBÑ formado por:
+        </p>
+        <ul class="list-disc list-inside space-y-2 text-yellow-700 text-base pl-2">
+            <li class="hover:translate-x-2 transition-transform duration-200">Manuel</li>
+            <li class="hover:translate-x-2 transition-transform duration-200">Samuel</li>
+            <li class="hover:translate-x-2 transition-transform duration-200">Ana</li>
+            <li class="hover:translate-x-2 transition-transform duration-200">Israel</li>
+            <li class="font-mono text-pink-600 hover:scale-110 transition-transform duration-200">la ChaTi 🤖</li>
+        </ul>
+    </div>
+</Layout>

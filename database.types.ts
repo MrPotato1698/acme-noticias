@@ -39,6 +39,7 @@ export type Database = {
           author: string
           body: string
           id: number
+          imgurl: string | null
           timestamp: string
           title: string
         }
@@ -46,6 +47,7 @@ export type Database = {
           author?: string
           body: string
           id: number
+          imgurl?: string | null
           timestamp: string
           title: string
         }
@@ -53,6 +55,7 @@ export type Database = {
           author?: string
           body?: string
           id?: number
+          imgurl?: string | null
           timestamp?: string
           title?: string
         }

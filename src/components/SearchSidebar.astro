@@ -46,13 +46,13 @@ const currentAuthor = searchParams.get('author') || '';
 const currentQuery = searchParams.get('q') || '';
 ---
 
-<aside class="w-full md:w-64 bg-[#fcf7f8] border-r border-[#2a2b2a]/10 h-full overflow-y-auto">
+<aside class="w-full md:w-64 bg-light border-r border-dark/10 h-full overflow-y-auto">
   <div class="p-4">
-    <h2 class="text-lg font-bold text-[#2a2b2a] mb-4">Filtros de búsqueda</h2>
+    <h2 class="text-lg font-bold text-dark mb-4">Filtros de búsqueda</h2>
 
     <!-- Búsqueda por palabra clave -->
     <div class="mb-6">
-      <h3 class="text-sm font-semibold text-[#2a2b2a] mb-2">Palabra clave</h3>
+      <h3 class="text-sm font-semibold text-dark mb-2">Palabra clave</h3>
       <form id="search-form" class="flex items-center">
         <input
           type="text"
@@ -60,11 +60,11 @@ const currentQuery = searchParams.get('q') || '';
           name="q"
           value={currentQuery}
           placeholder="Buscar noticias..."
-          class="w-full px-3 py-2 border border-[#2a2b2a]/20 rounded-md focus:outline-none focus:ring-2 focus:ring-[#23b5d3]"
+          class="w-full px-3 py-2 border border-dark/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
         />
         <button
           type="submit"
-          class="ml-2 p-2 bg-[#a31621] text-white rounded-md hover:bg-[#8a131c] transition-colors"
+          class="ml-2 p-2 bg-primary text-white rounded-md hover:bg-accent hover:text-dark transition-colors"
           aria-label="Buscar"
         >
           <svg
@@ -96,13 +96,13 @@ const currentQuery = searchParams.get('q') || '';
     <div class="mt-6 flex flex-col space-y-2">
       <button
         id="apply-filters"
-        class="w-full py-2 bg-[#a31621] text-white rounded-md hover:bg-[#8a131c] transition-colors"
+        class="w-full py-2 bg-primary text-white rounded-md hover:bg-accent hover:text-dark transition-colors"
       >
         Aplicar filtros
       </button>
       <button
         id="clear-filters"
-        class="w-full py-2 bg-transparent border border-[#2a2b2a]/20 text-[#2a2b2a] rounded-md hover:bg-[#2a2b2a]/5 transition-colors"
+        class="w-full py-2 bg-transparent border border-dark/20 text-dark rounded-md hover:bg-secondary hover:text-light transition-colors"
       >
         Limpiar filtros
       </button>

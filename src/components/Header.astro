@@ -1,24 +1,56 @@
 ---
 // Importamos los componentes necesarios
 import DropdownMenu from "./DropdownMenu.astro";
+import { supabase } from "@/db/supabase";
 
-// Simulamos la obtención del usuario actual (esto se reemplazaría con tu lógica de autenticación real)
-const isLoggedIn = Astro.cookies.has("session");
-let userRole = "";
+const { cookies, redirect } = Astro;
 
-if (isLoggedIn) {
-  // En un caso real, obtendrías el rol desde tu sesión o base de datos
-  userRole = Astro.cookies.get("userRole")?.value || "redactor";
+let isLoggedIn = false;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  isLoggedIn = false;
+}
+
+// Set the session with the cookies
+const { data: dataAuth, error: errorAuth } = await supabase.auth.setSession({
+  refresh_token: refreshToken?.value ?? '',
+  access_token: accessToken?.value ?? '',
+});
+
+// If there is an error, delete the cookies and redirect to login
+if (errorAuth) {
+  cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+}
+
+const id = dataAuth?.user?.id || "";
+
+const { data: userData } = await supabase
+  .from('profiles')
+  .select('rol!inner(name)')
+  .eq('id', id)
+  .single();
+
+if(userData) {
+	isLoggedIn = true;
 }
 ---
 
-<header class="bg-[#2a2b2a] text-[#fcf7f8] shadow-md">
+<header class="bg-dark text-light shadow-md">
   <div class="container mx-auto px-4 py-3">
     <div class="flex justify-between items-center">
       <!-- Logo -->
       <a href="/" class="flex items-center space-x-2">
+        <!-- Newspaper/document icon that forms part of the site logo 
         <svg
-          class="h-8 w-8 text-[#a31621]"
+          class="h-8 w-8 text-primary"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -32,7 +64,9 @@ if (isLoggedIn) {
           <path d="M18 14h-8"></path>
           <path d="M15 18h-5"></path>
           <path d="M10 6h8v4h-8V6Z"></path>
-        </svg>
+        </svg>-->
+        <img src="/Icon.webp" alt="IBÑ News Logo" class="h-8 w-8" />
+
         <span class="font-bold text-xl">IBÑ News: Acme Noticias</span>
       </a>
 
@@ -41,7 +75,7 @@ if (isLoggedIn) {
         <!-- Botón de búsqueda -->
         <a
           href="/searcharticle"
-          class="flex items-center space-x-1 px-3 py-2 rounded-md hover:bg-[#23b5d3] hover:text-[#2a2b2a] transition-colors duration-200"
+          class="flex items-center space-x-1 px-3 py-2 rounded-md hover:bg-accent hover:text-dark transition-colors duration-200"
         >
           <svg
             class="h-5 w-5"
@@ -64,7 +98,7 @@ if (isLoggedIn) {
             <div class="relative" id="user-menu-container">
               <button
                 id="user-menu-button"
-                class="flex items-center space-x-1 px-3 py-2 rounded-md bg-[#a31621] hover:bg-[#8a131c] transition-colors duration-200"
+                class="flex items-center space-x-1 px-3 py-2 rounded-md bg-primary hover:bg-accent transition-colors duration-200"
                 aria-expanded="false"
                 aria-haspopup="true"
               >
@@ -94,12 +128,12 @@ if (isLoggedIn) {
                 </svg>
               </button>
 
-              <DropdownMenu userRole={userRole} />
+              <DropdownMenu userRole={userData?.rol.name} />
             </div>
           ) : (
             <a
               href="/login"
-              class="flex items-center space-x-1 px-3 py-2 rounded-md bg-[#a31621] hover:bg-[#8a131c] transition-colors duration-200"
+              class="flex items-center space-x-1 px-3 py-2 rounded-md bg-primary hover:bg-accent transition-colors duration-200"
             >
               <svg
                 class="h-5 w-5"
