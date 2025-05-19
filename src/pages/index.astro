@@ -2,14 +2,12 @@
 import Layout from '@/layouts/Layout.astro';
 import ArticleCard from '@/components/ArticleCard.astro';
 import { supabase } from '@/db/supabase';
+import CategoryFilter from '@/components/CategoryFilter.astro';
 
 /*
 TO DO:
 - CORREGIR GRID
 - Refactorizar y manejar errores
-- Comprobar URLS
-- Lógica imágenes
-- Ver más.. en categorías
 */
 
 // Consulta artículos con sus categorías
@@ -26,7 +24,7 @@ articleCategories?.forEach(obj => {
 articleCategories?.sort((a, b) => new Date(b.article.timestamp).getTime() - new Date(a.article.timestamp).getTime());
 
 // Crear un Record para agrupar artículos y sus tipos
-type Value = { category: string; articles: any[] };
+type Value = { categoryName: string; categoryId: number; articles: any[] };
 const record: Record<string, Value> = {};
 
 // Crear un Map para registrar los artículos ya agregados y acceder a ellos por id
@@ -36,24 +34,25 @@ const addedArticles = new Map<number, any>();
 for (const obj of articleCategories as any|| []) {
 	const article = obj.article;
 	const articleId = article.id;
-	const categoryName = obj.category.name;
+	const categoryN = obj.category.name;
 
 	if (addedArticles.has(articleId)) {
 		// Si ya fue añadido, añadir esta categoría a los tags del artículo existente
 		const existingArticle = addedArticles.get(articleId);
-		existingArticle.tags.push(categoryName);
+		existingArticle.tags.push(categoryN);
     	continue;
 	}
 
-	if (!record[categoryName]) {
-		record[categoryName] = {
-			category: categoryName,
+	if (!record[categoryN]) {
+		record[categoryN] = {
+			categoryName: categoryN,
+			categoryId: obj.category.id,
 			articles: []
 		};
 	}
 
-	article.tags.push(categoryName);
-	record[categoryName].articles.push(article);
+	article.tags.push(categoryN);
+	record[categoryN].articles.push(article);
 	addedArticles.set(articleId, article);
 }
 
@@ -80,7 +79,7 @@ const articlesByCategory = Object.values(record).map(cat => ({
 						<ArticleCard
 							title={article.title}
 							summary={article.body}
-							image="/testIndex.png"
+							image={article.imgurl}
 							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
 							author={article.author?.full_name ?? "Anónimo"}
 							url={`/articulos/${article.id}`}
@@ -99,7 +98,7 @@ const articlesByCategory = Object.values(record).map(cat => ({
 						<ArticleCard
 							title={article.title}
 							summary={article.body}
-							image="/testIndex.png"
+							image={article.imgurl}
 							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
 							author={article.author?.full_name ?? "Anónimo"}
 							url={`/articulos/${article.id}`}
@@ -112,7 +111,10 @@ const articlesByCategory = Object.values(record).map(cat => ({
 
 		<!-- CATEGORIES -->
 		{articlesByCategory.map((category, i) => (
-			<h2 class="text-3xl font-semibold mb-3 mt-6">{category.category}</h2>
+			<div class="flex justify-between items-center mb-3 mt-6">
+				<h2 class="text-3xl font-semibold">{category.categoryName}</h2>
+				<a href=`/searcharticle?category=${category.categoryId}` class="text-blue-600 font-semibold text-sm hover:underline">Ver todos →</a>
+			</div>
 			<div class="grid grid-cols-3 grid-rows-1 gap-4">
 				{category.articles.map((article, i) => {
 					const colStart = i + 1;
@@ -121,7 +123,7 @@ const articlesByCategory = Object.values(record).map(cat => ({
 						<ArticleCard
 							title={article.title}
 							summary={article.body}
-							image="/testIndex.png"
+							image={article.imgurl}
 							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
 							author={article.author?.full_name ?? "Anónimo"}
 							url={`/articulos/${article.id}`}
