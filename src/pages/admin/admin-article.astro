@@ -2,7 +2,10 @@
 import Layout from "@/layouts/Layout.astro";
 import { supabase } from "../../db/supabase";
 
-const { data: articles } = await supabase.from("article").select(`
+const { data: articles } = await supabase
+    .from("article")
+    .select(
+        `
             id,
             title,
             body,
@@ -12,7 +15,9 @@ const { data: articles } = await supabase.from("article").select(`
             articlecategories(
             category(
             name))
-    `);
+    `,
+    )
+    .order("timestamp", { ascending: false });
 
 function converTimestamp(timestamp: string): string {
     const date = new Date(timestamp);
@@ -96,7 +101,7 @@ function converTimestamp(timestamp: string): string {
                                         Editar
                                     </button>
                                     <button
-                                        class="border-none rounded px-3 py-1.5 text-sm cursor-pointer font-medium transition-colors bg-red-50 text-red-600 hover:bg-red-100"
+                                        class="delete-article border-none rounded px-3 py-1.5 text-sm cursor-pointer font-medium transition-colors bg-red-50 text-red-600 hover:bg-red-100"
                                         data-id={article.id}
                                     >
                                         Borrar
@@ -110,3 +115,54 @@ function converTimestamp(timestamp: string): string {
         </div>
     </div>
 </Layout>
+
+<script is:inline>
+    document.addEventListener("DOMContentLoaded", () => {
+        const deleteButtons = document.querySelectorAll(".delete-article");
+
+        deleteButtons.forEach((button) => {
+            button.addEventListener("click", async (e) => {
+                e.preventDefault();
+                const id = button.getAttribute("data-id");
+
+                if (
+                    confirm(
+                        "¿Estás seguro de que quieres eliminar este artículo?",
+                    )
+                ) {
+                    try {
+                        const response = await fetch(
+                            "/api/article/deletearticle",
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({ articleId: id }),
+                            },
+                        );
+
+                        console.log("tmp");
+
+                        if (response.ok) {
+                            // Elimina la fila de la tabla
+                            const closestTr = button.closest("tr");
+                            if (closestTr) {
+                                closestTr.remove();
+                            }
+                            window.location.reload();
+                        } else {
+                            console.error(
+                                "Error deleting article",
+                                response.statusText,
+                            );
+                        }
+                    } catch (error) {
+                        console.error("Error:", error);
+                    }
+                }
+                console.log("Todo okey, mensaje eliminado");
+            });
+        });
+    });
+</script>
