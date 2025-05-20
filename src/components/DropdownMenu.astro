@@ -12,33 +12,85 @@ const { userRole } = Astro.props;
 >
   <div class="py-1" role="none">
     <!-- Opciones comunes para redactores y administradores -->
-    <a href="/articulos/nuevo" class="block px-4 py-2 text-sm text-[#2a2b2a] hover:bg-[#fcf7f8] hover:text-[#a31621]" role="menuitem">
+    <a href="/newarticle" class="block px-4 py-2 text-sm text-dark hover:bg-light hover:text-accent" role="menuitem">
       <div class="flex items-center space-x-2">
-        <span class="text-sm">📝</span>
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1"
+          stroke-linecap="round"
+          stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+          <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
+          <path d="M12 11l0 6" />
+          <path d="M9 14l6 0" />
+        </svg>
         <span>Crear nuevo artículo</span>
       </div>
     </a>
 
-    <a href="/articulos/administrar" class="block px-4 py-2 text-sm text-[#2a2b2a] hover:bg-[#fcf7f8] hover:text-[#a31621]" role="menuitem">
+    <a href="/admin/admin-article" class="block px-4 py-2 text-sm text-dark hover:bg-light hover:text-accent" role="menuitem">
       <div class="flex items-center space-x-2">
-        <span class="text-sm">📋</span>
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1"
+          stroke-linecap="round"
+          stroke-linejoin="round">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+          <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" />
+          <path d="M10 18l5 -5a1.414 1.414 0 0 0 -2 -2l-5 5v2h2z" />
+        </svg>
         <span>Administrar artículos</span>
       </div>
     </a>
 
     <!-- Opciones solo para administradores -->
-    {userRole === 'administrador' && (
+    {userRole === 'Administrador' && (
       <>
-        <a href="/usuarios/administrar" class="block px-4 py-2 text-sm text-[#2a2b2a] hover:bg-[#fcf7f8] hover:text-[#a31621]" role="menuitem">
+        <a href="/admin/admin-author" class="block px-4 py-2 text-sm text-dark hover:bg-light hover:text-accent" role="menuitem">
           <div class="flex items-center space-x-2">
-            <span class="text-sm">👥</span>
-            <span>Administrar usuarios</span>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" />
+              <path d="M6 21v-2a4 4 0 0 1 4 -4h3.5" />
+              <path d="M18.42 15.61a2.1 2.1 0 0 1 2.97 2.97l-3.39 3.42h-3v-3l3.42 -3.39z" />
+            </svg>
+            <span>Administrar Redactores</span>
           </div>
         </a>
 
-        <a href="/aplicacion/administrar" class="block px-4 py-2 text-sm text-[#2a2b2a] hover:bg-[#fcf7f8] hover:text-[#a31621]" role="menuitem">
+        <a href="/admin/administrar" class="block px-4 py-2 text-sm text-dark hover:bg-light hover:text-accent" role="menuitem">
           <div class="flex items-center space-x-2">
-            <span class="text-sm">⚙️</span>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1"
+              stroke-linecap="round"
+              stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" />
+              <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+            </svg>
             <span>Administrar aplicación</span>
           </div>
         </a>
@@ -49,10 +101,23 @@ const { userRole } = Astro.props;
     <div class="border-t border-gray-200 my-1"></div>
 
     <!-- Cerrar sesión -->
-    <form method="POST" action="/api/logout">
-      <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-[#2a2b2a] hover:bg-[#fcf7f8] hover:text-[#a31621]" role="menuitem">
+    <form action="/api/auth/signout">
+      <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-dark hover:bg-light hover:text-accent" role="menuitem">
         <div class="flex items-center space-x-2">
-          <span class="text-sm">🚪</span>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M10 8v-2a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-2" />
+            <path d="M15 12h-12l3 -3" />
+            <path d="M6 15l-3 -3" />
+          </svg>
           <span>Cerrar sesión</span>
         </div>
       </button>

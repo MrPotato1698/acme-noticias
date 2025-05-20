@@ -1,11 +1,144 @@
 ---
-import Welcome from '@/components/Welcome.astro';
 import Layout from '@/layouts/Layout.astro';
+import ArticleCard from '@/components/ArticleCard.astro';
+import { supabase } from '@/db/supabase';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+/*
+TODO:
+- CORREGIR GRID
+- Refactorizar y manejar errores
+*/
+
+// Consulta artículos con sus categorías
+const {data: articleCategories} = await supabase
+	.from('articlecategories')
+	.select('category!inner(id, name), article!inner(id, title, body, timestamp, author!inner(full_name), imgurl)');
+
+// Consulta artículos más recientes
+	const {data: lastArticlesData } = await supabase
+	.from('article')
+	.select('id, title, body, timestamp, author!inner(full_name), imgurl')
+	.order('timestamp', { ascending: false })
+	.limit(5);
+
+// Agregar atributo tags para categorías extras
+articleCategories?.forEach(obj => {
+  (obj.article as any).tags = [];
+});
+
+// Ordenar por fecha más reciente
+articleCategories?.sort((a, b) => new Date(b.article.timestamp).getTime() - new Date(a.article.timestamp).getTime());
+
+// Crear un Record para agrupar artículos y sus tipos
+type Value = { categoryName: string; categoryId: number; articles: any[] };
+const record: Record<string, Value> = {};
+
+// Crear un Map para registrar los artículos ya agregados y acceder a ellos por id
+const addedArticles = new Map<number, any>();
+
+// Agrupar en cada categoría (key) su nombre y el artículo (value), evitando duplicados
+for (const obj of articleCategories as any|| []) {
+	const article = obj.article;
+	const articleId = article.id;
+	const categoryN = obj.category.name;
+
+	if (addedArticles.has(articleId)) {
+		// Si ya fue añadido, añadir esta categoría a los tags del artículo existente
+		const existingArticle = addedArticles.get(articleId);
+		existingArticle.tags.push(categoryN);
+    continue;
+	}
+
+	if (!record[categoryN]) {
+		record[categoryN] = {
+			categoryName: categoryN,
+			categoryId: obj.category.id,
+			articles: []
+		};
+	}
+
+	article.tags.push(categoryN);
+	record[categoryN].articles.push(article);
+	addedArticles.set(articleId, article);
+}
+
+// Convertir registro en un array y transformarlo (tomar 3)
+const articlesByCategory = Object.values(record).map(cat => ({
+	...cat, // Copia el objeto original
+	articles: cat.articles.slice(0, 3)// Sobrescribe la lista de artículos
+}));
 ---
 
 <Layout>
-	<Welcome />
+	<main class="bg-[#fcf7f8] p-10">
+		<h2 class="text-5xl font-semibold mb-3">Últimas noticias</h2>
+
+			<div class="grid grid-cols-2 grid-rows-3 gap-4">
+			{
+				lastArticlesData?.map(((article, i) => {
+					let divClass = "";
+					switch(i) {
+						case 0:
+							divClass = "col-span-2";
+							break;
+						case 1:
+							divClass = 'row-start-2';
+							break;
+						case 2:
+							divClass = 'row-start-2';
+							break;
+							case 3:
+							divClass = 'row-start-3';
+							break;
+							case 4:
+							divClass = 'row-start-3';
+							break;
+					}
+					return (
+						<div class={divClass}>
+							{console.log('Entra a forEach')}
+							<ArticleCard
+								title={article.title}
+								summary={article.body}
+								image={article.imgurl ?? ''}
+								date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+								author={article.author?.full_name ?? "Anónimo"}
+								url={`/articulos/${article.id}`}
+								tags={
+									[articleCategories?.find((obj) => obj.article.id === article.id)?.category?.name
+									].filter((tag): tag is string => typeof tag === 'string')
+								}
+							/>
+						</div>
+					)
+				}))
+			}
+		</div>
+
+		<!-- Categorías -->
+		{articlesByCategory.map((category, i) => (
+			<div class="flex justify-between items-center mb-3 mt-6">
+				<h2 class="text-3xl font-semibold">{category.categoryName}</h2>
+				<a href=`/searcharticle?category=${category.categoryId}` class="text-blue-600 font-semibold text-sm hover:underline">Ver todos →</a>
+			</div>
+			<div class="grid grid-cols-3 grid-rows-1 gap-4">
+				{category.articles.map((article, i) => {
+					const colStart = i + 1;
+					return (
+					<div class={`col-star-${colStart} col-span-1`}>
+						<ArticleCard
+							title={article.title}
+							summary={article.body}
+							image={article.imgurl}
+							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+							author={article.author?.full_name ?? "Anónimo"}
+							url={`/articulos/${article.id}`}
+							tags={article.tags}
+						/>
+					</div>
+				)})}
+			</div>
+		))}
+	</main>
+
 </Layout>

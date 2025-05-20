@@ -1,0 +1,70 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { Image } from "astro:assets";
+import IBNLogo from "@/assets/IBNBlueLogo.webp";
+
+---
+
+<Layout>
+
+<div class="bg-light flex justify-center items-center h-screen">
+  <!-- Left: Image -->
+  <div class="w-1/2 h-screen hidden lg:flex flex-col justify-center bg-primary">
+    <Image src={IBNLogo} alt="IBN Logo" class="object-cover w-full h-9/12" />
+  </div>
+
+  <!-- Right: Login Form -->
+  <div class= "lg:p-36 md:p-52 sm:20 p-8 w-full lg:w-1/2">
+    <h1 class="text-2xl font-semibold mb-4">Login</h1>
+    <form action="/api/auth/signin" method="POST">
+      <!-- Username Input -->
+      <div class="mb-4" "bg-sky-100">
+        <label for="email" class="block text-dark">Email</label>
+        <input type="text" id="email" name="email" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500" autocomplete="off">
+      </div>
+      <!-- Password Input -->
+      <div class="mb-4">
+        <label for="password" class="block text-dark">Contraseña</label>
+        <input type="password" id="password" name="password" class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500" autocomplete="off">
+      </div>
+      <!-- Remember Me Checkbox -->
+      <div class="mb-4 flex items-center">
+        <input type="checkbox" id="remember" name="remember" class="text-primary">
+        <label for="remember" class="text-green-900 ml-2">Recuerdame</label>
+      </div>
+      <!-- Forgot Password Link -->
+      <div class="mb-6 text-blue-500">
+        <a href="/recoverpassword" class="hover:underline">¿Olvidaste la Contraseña?</a>
+      </div>
+      <!-- Login Button -->
+      <button type="submit" class="bg-primary hover:bg-blue-600 text-white font-semibold rounded-md py-2 px-4 w-full">Login</button>
+    </form>
+    <!-- Sign up  Link -->
+    <div class="mt-6 text-green-500 text-center">
+      <a href="#" class="hover:underline">Sign up Here</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    if (!form) return;
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: formData
+      });
+      if (response.ok) {
+        window.location.href = '/';
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Error al iniciar sesión');
+      }
+    });
+  });
+</script>
+
+</Layout>

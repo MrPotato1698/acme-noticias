@@ -1,169 +1,218 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-import { supabase } from "../../db/supabase";
 
-const { data: articles } = await supabase
-    .from("article")
-    .select(
-        `
-            id,
-            title,
-            body,
-            timestamp,
-            author,
-            profiles!article_author_fkey(id,full_name,email),
-            articlecategories(
-            category(
-            name))
-    `,
-    )
-    .order("timestamp", { ascending: false });
+import { supabase } from "@/db/supabase";
 
-function converTimestamp(timestamp: string): string {
-    const date = new Date(timestamp);
-    const formatter = new Intl.DateTimeFormat("es", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
-    return formatter.format(date);
+const { cookies, redirect } = Astro;
+
+let isLoggedIn = false;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  isLoggedIn = false;
+}
+
+// Set the session with the cookies
+const { data: dataAuth, error: errorAuth } = await supabase.auth.setSession({
+  refresh_token: refreshToken?.value ?? "",
+  access_token: accessToken?.value ?? "",
+});
+
+// If there is an error, delete the cookies and redirect to login
+if (errorAuth) {
+  cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+}
+
+const id = dataAuth?.user?.id || "";
+
+const { data: userData } = await supabase
+  .from("profiles")
+  .select("rol!inner(name)")
+  .eq("id", id)
+  .single();
+
+// Mock data - replace with your actual data fetching logic
+const articles = [
+  {
+    id: "1",
+    title: "Building Modern Web Apps with Astro",
+    author: "Jane Doe",
+    types: ["Technology", "Web Development"],
+    publishedAt: new Date("2025-04-15T14:30:00"),
+  },
+  {
+    id: "2",
+    title: "The Future of AI in Healthcare",
+    author: "John Smith",
+    types: ["Health", "Technology", "AI"],
+    publishedAt: new Date("2025-05-10T09:15:00"),
+  },
+  {
+    id: "3",
+    title: "Sustainable Living: A Practical Guide",
+    author: "Maria Garcia",
+    types: ["Lifestyle", "Environment"],
+    publishedAt: new Date("2025-05-12T16:45:00"),
+  },
+];
+
+// Function to format date
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+const { data: articlesData, error: errorArticlesData } = await supabase
+  .from("article")
+  .select("id, title, body, timestamp, author!inner(id, full_name) ")
+  .order("timestamp", { ascending: false });
+
+if (errorArticlesData || !articlesData) {
+  console.error("Error fetching articles:", errorArticlesData);
+}
+
+let articlesDataAuthor;
+if(articlesData && userData?.rol.name === "Redactor"){
+  articlesDataAuthor = articlesData.filter((article) => article.author.id === id);
+} else {
+  articlesDataAuthor = articlesData;
+}
+
+const { data: categoriesArticlesData, error: errorCategoriesArticlesData } =
+  await supabase
+    .from("articlecategories")
+    .select("article, category!inner(name)");
+
+if (errorCategoriesArticlesData || !categoriesArticlesData) {
+  console.error("Error fetching categories:", errorCategoriesArticlesData);
 }
 ---
 
 <Layout>
-    <div class="max-w-7xl mx-auto py-8 px-4">
-        <h1 class="text-2xl mb-6 text-gray-800 font-bold">
-            Administración de artículos
-        </h1>
 
-        <div class="flex justify-end mb-4">
-            <!-- Add a new article button if needed -->
-        </div>
+  <div class="max-w-7xl mx-auto p-8">
+    <h1 class="text-3xl mb-6 text-gray-800">Administar Articulos</h1>
 
-        <div class="overflow-x-auto bg-white rounded-lg shadow-md">
-            <table class="w-full border-collapse">
-                <thead>
-                    <tr>
-                        <th
-                            class="p-3 text-left bg-gray-50 font-semibold border-b border-gray-100"
-                            >Título</th
-                        >
-                        <th
-                            class="p-3 text-left bg-gray-50 font-semibold border-b border-gray-100"
-                            >Autor</th
-                        >
-                        <th
-                            class="p-3 text-left bg-gray-50 font-semibold border-b border-gray-100"
-                            >Categorias</th
-                        >
-                        <th
-                            class="p-3 text-left bg-gray-50 font-semibold border-b border-gray-100"
-                            >Fecha de publicación</th
-                        >
-                        <th
-                            class="p-3 text-left bg-gray-50 font-semibold border-b border-gray-100"
-                            >Acciones</th
-                        >
-                    </tr>
-                </thead>
-                <tbody>
-                    {
-                        articles?.map((article) => (
-                            <tr class="hover:bg-gray-50">
-                                <td class="p-3 border-b border-gray-100 font-medium max-w-xs text-s">
-                                    {article.title}
-                                </td>
-                                <td class="p-3 border-b border-gray-100">
-                                    {article.profiles.full_name}
-                                </td>
-                                <td class="p-3 border-b border-gray-100">
-                                    <div class="flex flex-wrap gap-1">
-                                        {article.articlecategories?.map(
-                                            (ac, index) => (
-                                                <span
-                                                    data-index={index}
-                                                    class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded"
-                                                >
-                                                    {ac.category.name}
-                                                </span>
-                                            ),
-                                        )}
-                                    </div>
-                                </td>
-                                <td class="p-3 border-b border-gray-100">
-                                    {converTimestamp(article.timestamp)}
-                                </td>
-                                <td class="p-3 border-b border-gray-100 whitespace-nowrap">
-                                    <a
-                                        class="border-none rounded px-3 py-1.5 text-sm cursor-pointer font-medium transition-colors bg-sky-50 text-sky-600 hover:bg-sky-100 mr-2"
-                                        data-id={article.id}
-                                        href={`/admin/article/${article.id}`}
-                                    >
-                                        Editar
-                                    </a>
-                                    <button
-                                        class="delete-article border-none rounded px-3 py-1.5 text-sm cursor-pointer font-medium transition-colors bg-red-50 text-red-600 hover:bg-red-100"
-                                        data-id={article.id}
-                                    >
-                                        Borrar
-                                    </button>
-                                </td>
-                            </tr>
-                        ))
-                    }
-                </tbody>
-            </table>
-        </div>
+    <div class="flex justify-end mb-4">
+      <a href='/newarticle' class="bg-blue-600 text-white py-2 px-4 rounded">Añadir nuevos articulos</a>
     </div>
+
+    <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Titulo</th>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Cuerpo</th>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Categorias</th>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Publicado</th>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Autor</th>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            articlesDataAuthor?.map((article) => (
+              <tr class="hover:bg-gray-50">
+                <td class="font-medium max-w-xs py-3 px-4">{article.title}</td>
+                <td class="text-sm py-3 px-4">
+                  <div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
+                  {article.body}
+                  </div>
+                </td>
+                <td class="gap-2 py-3 px-4">
+                  <div class="flex flex-wrap gap-2">
+                  {
+                    categoriesArticlesData
+                    ?.filter((obj) => obj.article === article.id)
+                    .map((obj) => (
+                      <span class="bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 text-xs font-medium">
+                      {obj.category?.name}
+                      </span>
+                    ))
+                  }
+                  </div>
+                </td>
+                <td class="py-3 px-4">{new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric'})}</td>
+                <td class="py-3 px-4">{article.author.full_name ?? "Anom"}</td>
+                <td class="whitespace-nowrap py-3 px-4">
+                  <button class="bg-blue-100 text-blue-600 mr-2 py-1 px-3 rounded" data-id={article.id}>
+                    Edit
+                  </button>
+                  <button
+                      class="justify-center text-red-500 hover:text-red-700 btn-delete"
+                      data-id={article.id}
+                      title="Eliminar"
+                    >
+                      <svg
+                        class="w-6 text-center mx-auto"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M3 6h18"/>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                      </svg>
+                    </button>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
 </Layout>
 
-<script is:inline>
-    document.addEventListener("DOMContentLoaded", () => {
-        const deleteButtons = document.querySelectorAll(".delete-article");
-
-        deleteButtons.forEach((button) => {
-            button.addEventListener("click", async (e) => {
-                e.preventDefault();
-                const id = button.getAttribute("data-id");
-
-                if (
-                    confirm(
-                        "¿Estás seguro de que quieres eliminar este artículo?",
-                    )
-                ) {
-                    try {
-                        const response = await fetch(
-                            "/api/article/deletearticle",
-                            {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                },
-                                body: JSON.stringify({ articleId: id }),
-                            },
-                        );
-
-                        console.log("tmp");
-
-                        if (response.ok) {
-                            // Elimina la fila de la tabla
-                            const closestTr = button.closest("tr");
-                            if (closestTr) {
-                                closestTr.remove();
-                            }
-                            window.location.reload();
-                        } else {
-                            console.error(
-                                "Error deleting article",
-                                response.statusText,
-                            );
-                        }
-                    } catch (error) {
-                        console.error("Error:", error);
-                    }
-                }
-                console.log("Todo okey, mensaje eliminado");
-            });
-        });
+<script>
+  // Client-side functionality
+  document.addEventListener("DOMContentLoaded", () => {
+    // Edit button functionality
+    document.querySelectorAll(".btn-edit").forEach((button) => {
+      button.addEventListener("click", () => {
+        const articleId = button.getAttribute("data-id");
+        window.location.href = `/admin/edit-article?id=${articleId}`;
+      });
     });
+
+    // Delete button functionality
+    document.querySelectorAll(".btn-delete").forEach((button) => {
+      button.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const articleId = button.getAttribute("data-id");
+        if (!articleId) return;
+        if (!confirm("¿Estás seguro de que quieres eliminar este elemento?")) return;
+        try {
+          const response = await fetch(`/api/article/deletearticle`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: articleId }),
+          });
+          if (response.ok) {
+            alert("Elemento eliminado correctamente");
+            window.location.reload();
+          } else {
+            alert("Error eliminando el elemento: " + response.statusText);
+            console.error("Error eliminando el elemento:", response.statusText);
+          }
+        } catch (error) {
+          alert("Error eliminando el elemento: " + error);
+        }
+      });
+    });
+  });
 </script>

@@ -1,0 +1,46 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { supabase } from '@/db/supabase';
+
+const { data: redactores, error: errorProfilesData } = await supabase.from('profiles')
+.select('id, full_name, email')
+.eq('rol', 2);
+
+
+// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
+// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+---
+
+<Layout>
+    
+  <div class="flex justify-center">
+    <table class="w-full max-w-5xl table-auto bg-white shadow rounded overflow-hidden">
+      <thead class="bg-gray-200 text-left text-sm uppercase tracking-wider">
+        <tr>
+          <th class="px-6 py-4">Nombre</th>
+          <th class="px-6 py-4">Correo</th>
+          <th class="px-6 py-4">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {redactores && redactores.map((redactor) => (
+          <tr class="border-t hover:bg-gray-100">
+            <td class="px-6 py-4">{redactor.full_name}</td>
+            <td class="px-6 py-4">{redactor.email}</td>
+            <td class="px-6 py-4 space-x-2">
+              <a href={`http://localhost:4321/admin/authors/${redactor.id}`}>
+              <button class="bg-[var(--color-primary)] text-white px-4 py-2 rounded hover:bg-[#1a91aa] text-sm cursor-pointer">
+                Modificar
+              </button>
+            </a>
+              <button class="bg-[var(--color-secondary)] text-white px-4 py-2 rounded hover:bg-[#800f1a] text-sm cursor-pointer">
+                Borrar
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+</Layout>

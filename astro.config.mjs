@@ -10,4 +10,6 @@ export default defineConfig({
   },
   output: 'server',
 
+  output: "server"
+
 });

@@ -3,8 +3,10 @@ import { supabase } from "@/db/supabase";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const formData = await request.formData();
-  const email = formData.get("email")?.toString();
-  const password = formData.get("password")?.toString();
+  const emailValue = formData.get("email");
+  const passwordValue = formData.get("password");
+  const email = typeof emailValue === "string" ? emailValue : "";
+  const password = typeof passwordValue === "string" ? passwordValue : "";
 
   if (!email || !password) {
     return new Response(
