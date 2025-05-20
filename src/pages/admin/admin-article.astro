@@ -109,10 +109,14 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
                 </td>
                 <td class="py-3 px-4">{new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric'})}</td>
                 <td class="py-3 px-4">{article.author.full_name ?? "Anom"}</td>
-                <td class="px-4 my-5 grid grid-rows-2 gap-2 ">
+                <td class="px-4 my-5 grid grid-rows-3 gap-2 ">
                   <a href={`http://localhost:4321/admin/article/${article.id}`}
-                    class="bg-primary text-light px-4 py-2 rounded hover:bg-primary/90 text-sm cursor-pointer">
+                    class="bg-primary text-center text-light px-4 py-2 rounded hover:bg-primary/90 text-sm cursor-pointer">
                     Modificar
+                  </a>
+                  <a href={`http://localhost:4321/admin/article/${article.id}/commentaries`}
+                    class="bg-accent text-center text-light px-4 py-2 rounded hover:bg-accent/90 text-sm cursor-pointer">
+                    Comentarios
                   </a>
                   <button
                     class="btn-delete bg-red-700 text-light px-4 py-2 rounded hover:bg-red-800 text-sm cursor-pointer"
