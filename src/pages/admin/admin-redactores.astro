@@ -6,7 +6,7 @@ const { data: redactores, error: errorProfilesData } = await supabase.from('prof
 .select('id, full_name, email')
 .eq('rol', 2);
 
-console.log(redactores)
+
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
@@ -28,10 +28,12 @@ console.log(redactores)
             <td class="px-6 py-4">{redactor.full_name}</td>
             <td class="px-6 py-4">{redactor.email}</td>
             <td class="px-6 py-4 space-x-2">
-              <button class="bg-[var(--color-secondary)]  text-white px-4 py-2 rounded hover:bg-[#1a91aa] text-sm cursor-pointer">
+              <a href={`http://localhost:4321/admin/authors/${redactor.id}`}>
+              <button class="bg-[var(--color-primary)] text-white px-4 py-2 rounded hover:bg-[#1a91aa] text-sm cursor-pointer">
                 Modificar
               </button>
-              <button class="bg-[var(--color-primary)] text-white px-4 py-2 rounded hover:bg-[#800f1a] text-sm cursor-pointer">
+            </a>
+              <button class="bg-[var(--color-secondary)] text-white px-4 py-2 rounded hover:bg-[#800f1a] text-sm cursor-pointer">
                 Borrar
               </button>
             </td>
@@ -40,7 +42,5 @@ console.log(redactores)
       </tbody>
     </table>
   </div>
-  
-  
-    
+
 </Layout>
