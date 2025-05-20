@@ -94,12 +94,13 @@ function converTimestamp(timestamp: string): string {
                                     {converTimestamp(article.timestamp)}
                                 </td>
                                 <td class="p-3 border-b border-gray-100 whitespace-nowrap">
-                                    <button
+                                    <a
                                         class="border-none rounded px-3 py-1.5 text-sm cursor-pointer font-medium transition-colors bg-sky-50 text-sky-600 hover:bg-sky-100 mr-2"
                                         data-id={article.id}
+                                        href={`/admin/article/${article.id}`}
                                     >
                                         Editar
-                                    </button>
+                                    </a>
                                     <button
                                         class="delete-article border-none rounded px-3 py-1.5 text-sm cursor-pointer font-medium transition-colors bg-red-50 text-red-600 hover:bg-red-100"
                                         data-id={article.id}
