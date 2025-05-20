@@ -109,13 +109,17 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
                 </td>
                 <td class="py-3 px-4">{new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric'})}</td>
                 <td class="py-3 px-4">{article.author.full_name ?? "Anom"}</td>
-                <td class="px-4 my-5 grid grid-rows-2 gap-2 ">
+                <td class="px-4 my-5 grid grid-rows-3 gap-2 ">
                   <a href={`http://localhost:4321/admin/article/${article.id}`}
-                    class="bg-primary text-light px-4 py-2 rounded hover:bg-primary/90 text-sm cursor-pointer">
+                    class="bg-primary text-center text-light px-4 py-2 rounded hover:bg-primary/90 text-sm cursor-pointer">
                     Modificar
                   </a>
+                  <a href={`http://localhost:4321/admin/article/${article.id}/commentaries`}
+                    class="bg-accent text-center text-light px-4 py-2 rounded hover:bg-accent/90 text-sm cursor-pointer">
+                    Comentarios
+                  </a>
                   <button
-                    class="bg-red-700 text-light px-4 py-2 rounded hover:bg-red-800 text-sm cursor-pointer"
+                    class="btn-delete bg-red-700 text-light px-4 py-2 rounded hover:bg-red-800 text-sm cursor-pointer"
                     data-id={article.id}>
                     Borrar
                   </button>
@@ -146,7 +150,7 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
         e.preventDefault();
         const articleId = button.getAttribute("data-id");
         if (!articleId) return;
-        if (!confirm("¿Estás seguro de que quieres eliminar este elemento?")) return;
+        if (!confirm("¿Estás seguro de que quieres eliminar este artículo?")) return;
         try {
           const response = await fetch(`/api/article/deletearticle`, {
             method: "POST",
@@ -154,14 +158,14 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
             body: JSON.stringify({ id: articleId }),
           });
           if (response.ok) {
-            alert("Elemento eliminado correctamente");
+            alert("Artículo eliminado correctamente");
             window.location.reload();
           } else {
-            alert("Error eliminando el elemento: " + response.statusText);
-            console.error("Error eliminando el elemento:", response.statusText);
+            alert("Error eliminando el artículo: " + response.statusText);
+            console.error("Error eliminando el artículo:", response.statusText);
           }
         } catch (error) {
-          alert("Error eliminando el elemento: " + error);
+          alert("Error eliminando el artículo: " + error);
         }
       });
     });

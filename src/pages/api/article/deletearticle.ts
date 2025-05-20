@@ -28,8 +28,8 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   if (errorDeleteData) {
-    console.error("Error al eliminar el coche:", errorDeleteData);
-    return new Response("Error al eliminar el coche", { status: 500 });
+    console.error("Error al eliminar el artículo:", errorDeleteData);
+    return new Response("Error al eliminar el artículo", { status: 500 });
   }
-  return new Response("Coche eliminada con exito", { status: 200 });
+  return new Response("Artículo eliminado con exito", { status: 200 });
 }
