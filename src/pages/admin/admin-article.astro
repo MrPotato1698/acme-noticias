@@ -4,13 +4,11 @@ import { supabase } from "@/db/supabase";
 
 const { cookies, redirect } = Astro;
 
-let isLoggedIn = false;
-
 const accessToken = cookies.get("sb-access-token");
 const refreshToken = cookies.get("sb-refresh-token");
 
 if (!accessToken || !refreshToken) {
-  isLoggedIn = false;
+  redirect("/login");
 }
 
 // Set the session with the cookies
@@ -36,42 +34,6 @@ const { data: userData } = await supabase
   .select("rol!inner(name)")
   .eq("id", id)
   .single();
-
-// Mock data - replace with your actual data fetching logic
-const articles = [
-  {
-    id: "1",
-    title: "Building Modern Web Apps with Astro",
-    author: "Jane Doe",
-    types: ["Technology", "Web Development"],
-    publishedAt: new Date("2025-04-15T14:30:00"),
-  },
-  {
-    id: "2",
-    title: "The Future of AI in Healthcare",
-    author: "John Smith",
-    types: ["Health", "Technology", "AI"],
-    publishedAt: new Date("2025-05-10T09:15:00"),
-  },
-  {
-    id: "3",
-    title: "Sustainable Living: A Practical Guide",
-    author: "Maria Garcia",
-    types: ["Lifestyle", "Environment"],
-    publishedAt: new Date("2025-05-12T16:45:00"),
-  },
-];
-
-// Function to format date
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
 
 const { data: articlesData, error: errorArticlesData } = await supabase
   .from("article")
@@ -101,7 +63,7 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
 
 <Layout>
   <div class="max-w-7xl mx-auto p-8">
-    <h1 class="text-3xl mb-6 text-gray-800">Administar Articulos</h1>
+    <h1 class="text-4xl font-bold mb-4">Administar Articulos</h1>
 
     <div class="flex justify-end mb-4">
       <a href='/newarticle' class="bg-blue-600 text-white py-2 px-4 rounded">Añadir nuevos articulos</a>
@@ -119,13 +81,14 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
             <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Acciones</th>
           </tr>
         </thead>
+
         <tbody>
           {
             articlesDataAuthor?.map((article) => (
-              <tr class="hover:bg-gray-50">
+              <tr class="hover:bg-gray-50 table-row">
                 <td class="font-medium max-w-xs py-3 px-4">{article.title}</td>
                 <td class="text-sm py-3 px-4">
-                  <div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
+                    <div class="line-clamp-3 overflow-hidden text-ellipsis max-w-2xl">
                   {article.body}
                   </div>
                 </td>
@@ -144,28 +107,16 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
                 </td>
                 <td class="py-3 px-4">{new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric'})}</td>
                 <td class="py-3 px-4">{article.author.full_name ?? "Anom"}</td>
-                <td class="whitespace-nowrap py-3 px-4">
-                  <button class="bg-blue-100 text-blue-600 mr-2 py-1 px-3 rounded" data-id={article.id}>
-                    Edit
-                  </button>
+                <td class="px-4 my-5 grid grid-rows-2 gap-2 ">
+                  <a href={`http://localhost:4321/admin/article/${article.id}`}
+                    class="bg-primary text-light px-4 py-2 rounded hover:bg-primary/90 text-sm cursor-pointer">
+                    Modificar
+                  </a>
                   <button
-                      class="justify-center text-red-500 hover:text-red-700 btn-delete"
-                      data-id={article.id}
-                      title="Eliminar"
-                    >
-                      <svg
-                        class="w-6 text-center mx-auto"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M3 6h18"/>
-                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                      </svg>
-                    </button>
+                    class="bg-red-700 text-light px-4 py-2 rounded hover:bg-red-800 text-sm cursor-pointer"
+                    data-id={article.id}>
+                    Borrar
+                  </button>
                 </td>
               </tr>
             ))
@@ -214,3 +165,12 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
     });
   });
 </script>
+
+<style>
+  .table-row:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  .table-row:nth-child(odd) {
+    background-color: #fff;
+  }
+</style>
