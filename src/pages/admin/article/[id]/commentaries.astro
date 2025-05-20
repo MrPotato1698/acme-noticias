@@ -1,0 +1,136 @@
+---
+import Layout from "@/layouts/Layout.astro";
+
+import { supabase } from "@/db/supabase";
+
+const { cookies, redirect } = Astro;
+const { id: articleId } = Astro.params;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  redirect("/login");
+}
+
+if (!articleId) {
+  throw new Error("ID de artículo no proporcionado.");
+}
+
+// Set the session with the cookies
+const { data: dataAuth, error: errorAuth } = await supabase.auth.setSession({
+  refresh_token: refreshToken?.value ?? "",
+  access_token: accessToken?.value ?? "",
+});
+
+// If there is an error, delete the cookies and redirect to login
+if (errorAuth) {
+  cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+}
+
+const id = dataAuth?.user?.id || "";
+
+const { data: userData } = await supabase
+  .from("profiles")
+  .select("rol!inner(name)")
+  .eq("id", id)
+  .single();
+
+const { data: commentariesData, error: errorCommentariesData } = await supabase
+  .from("commentary")
+  .select("id, redactor!inner(full_name), comment, timestamp")
+  .eq("article", parseInt(articleId))
+  .order("timestamp", { ascending: true });
+
+if (errorCommentariesData || !commentariesData) {
+  console.error("Error fetching commentaries:", errorCommentariesData);
+}
+---
+
+<Layout>
+
+  <div class="max-w-7xl mx-auto p-8">
+    <h1 class="text-4xl font-bold mb-4">Administar Comentarios</h1>
+
+    <div class="overflow-x-auto bg-white rounded-lg shadow-md">
+      <table class="w-full border-collapse">
+        <thead>
+          <tr>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Comentario</th>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Publicado</th>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Autor</th>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Acciones</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {
+            commentariesData?.map((commentary) => (
+              <tr class="hover:bg-gray-50 table-row">
+                <td class="text-sm py-3 px-4">
+                    <div class="line-clamp-3 overflow-hidden text-ellipsis max-w-2xl">
+                  {commentary.comment}
+                  </div>
+                </td>
+                <td class="py-3 px-4">{new Date(commentary.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric'})}</td>
+                <td class="py-3 px-4">{commentary.redactor.full_name ?? "Anom"}</td>
+                <td class="px-4 my-5 grid grid-rows-1 gap-2 ">
+                  <button
+                    class="btn-delete bg-red-700 text-light px-4 py-2 rounded hover:bg-red-800 text-sm cursor-pointer"
+                    data-id={commentary.id}>
+                    Borrar
+                  </button>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // Client-side functionality
+  document.addEventListener("DOMContentLoaded", () => {
+    // Delete button functionality
+    document.querySelectorAll(".btn-delete").forEach((button) => {
+      button.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const commentaryId = button.getAttribute("data-id");
+        if (!commentaryId) return;
+        if (!confirm("¿Estás seguro de que quieres eliminar este comentario?")) return;
+        try {
+          const response = await fetch(`/api/article/commentaries/deletecommentary`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: commentaryId }),
+          });
+          if (response.ok) {
+            alert("Comentario eliminado correctamente");
+            window.location.reload();
+          } else {
+            alert("Error eliminando el comentario: " + response.statusText);
+            console.error("Error eliminando el comentario:", response.statusText);
+          }
+        } catch (error) {
+          alert("Error eliminando el comentario: " + error);
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .table-row:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  .table-row:nth-child(odd) {
+    background-color: #fff;
+  }
+</style>
