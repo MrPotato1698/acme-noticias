@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+
 import { supabase } from "@/db/supabase";
 
 const { cookies, redirect } = Astro;
@@ -100,6 +101,7 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
 ---
 
 <Layout>
+
   <div class="max-w-7xl mx-auto p-8">
     <h1 class="text-3xl mb-6 text-gray-800">Administar Articulos</h1>
 
