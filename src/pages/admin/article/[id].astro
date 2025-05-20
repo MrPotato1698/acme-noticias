@@ -41,11 +41,14 @@ const selectedCategoryIds =
         <h1 class="text-4xl font-bold mb-4">Actualizar Articulo</h1>
 
         <form
+            id="formArticle"
             action="/api/article/updatearticle"
             method="POST"
             class="space-y-4"
             id="articleForm"
         >
+            <input type="hidden" name="id" value={id} />
+
             <div>
                 <label
                     for="title"
@@ -170,3 +173,40 @@ const selectedCategoryIds =
         </form>
     </div>
 </Layout>
+<script>
+    document
+        .getElementById("formArticle")
+        ?.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const formulario = document.getElementById("formArticle");
+            if (!(formulario instanceof HTMLFormElement)) {
+                alert("No se encontró el formulario.");
+                return;
+            }
+            const formData = new FormData(formulario);
+
+            const response = await fetch("/api/article/updatearticle", {
+                method: "POST",
+                body: formData,
+            });
+
+            let result: { error?: string } = {};
+            if (
+                response.headers
+                    .get("content-type")
+                    ?.includes("application/json")
+            ) {
+                result = await response.json();
+            } else {
+                result = { error: "Respuesta inesperada del servidor" };
+            }
+
+            if (response.ok) {
+                alert("Articulo actualizado correctamente");
+                window.location.reload();
+            } else {
+                alert("Error: " + (result.error || "Error desconocido"));
+            }
+        });
+</script>

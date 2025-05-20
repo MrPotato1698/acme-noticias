@@ -2,7 +2,6 @@ import type { APIRoute } from "astro";
 import { supabase } from "@/db/supabase";
 
 export const POST: APIRoute = async ({ request }) => {
-    console.log("TEST: ");
 
     const { articleId } = await request.json();
 
