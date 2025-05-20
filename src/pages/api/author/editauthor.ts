@@ -6,21 +6,18 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 
   const nombre = formData.get("nombre") as string;
   const id = formData.get("id") as string;
-  
 
   if (!nombre) return new Response("El nombre del redactor es obligatorio", { status: 400 });
   if (!id) return new Response("El id del perfil es obligatorio", { status: 400 });
 
-  const { data, error } = await supabase
+  const { error } = await supabase
   .from("profiles")
-  .update({
-    "full_name": nombre,
-  })
-  .eq("id", id); 
+  .update({"full_name": nombre,})
+  .eq("id", id);
 
   if (error) {
-    console.error("Error actualizando el redactor:", error);
-    return new Response("Error al actualizar el redactor", { status: 500 });
+    console.error("Error actualizando el redactor: ", error);
+    return new Response("Error al actualizar el redactor: " + (error.message || JSON.stringify(error)), { status: 500 });
   }
 
   return new Response("Noticia creada correctamente", { status: 200 });
