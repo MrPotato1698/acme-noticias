@@ -23,7 +23,7 @@ const nombreRedactor = data?.full_name ?? '';
       <h1 class="text-2xl font-bold mb-6">Cambiar Nombre</h1>
 
       <!-- Paso 1: paso el id como atributo data-id -->
-      <form id="formRedactor" data-id={id} method="POST" action="/api/author/editauthors">
+      <form id="formRedactor" data-id={id} method="POST" action="/api/author/editauthor">
         <input type="hidden" name="id" value={id} />
         <label for="nombre" class="block mb-2 text-sm font-medium text-gray-700">Nombre:</label>
         <input
@@ -57,38 +57,29 @@ const nombreRedactor = data?.full_name ?? '';
 
   <!-- Paso 2: listener en JS que lee el id del data-id -->
   <script>
-    document.getElementById('formRedactor')?.addEventListener('submit', async function (e) {
-      e.preventDefault();
-      
-   //const form = e.currentTarget as HTMLFormElement;
-   //   const id = form.getAttribute('data-id');
-
-      const formulario = document.querySelector("formRedactor") as HTMLFormElement;
-      const formData = new FormData(formulario); // toma todos los inputs del form
-  
-     /* if (!id) {
-        alert('No se encontró el ID del redactor');
-        return;
-      }
-  
-      const inputNombre = document.getElementById('nombre') as HTMLInputElement;
-      if (!inputNombre) {
-        alert('El campo nombre no se encontró');
-        return;
-      }*/
-  
-      const response = await fetch("/api/authors/editauthors", {
-          method: "POST",
-          body: formData,
+    // @ts-nocheck
+    document.addEventListener('DOMContentLoaded', function () {
+      var formulario = document.getElementById('formRedactor');
+      if (formulario) {
+        formulario.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          var formData = new FormData(formulario);
+          try {
+            var response = await fetch('/api/author/editauthor', {
+              method: 'POST',
+              body: formData,
+            });
+            var result = await response.text();
+            if (response.ok) {
+              alert('Nombre actualizado con éxito');
+              window.location.href = '/admin/admin-author';
+            } else {
+              alert('Error: ' + result);
+            }
+          } catch (err) {
+            alert('Error: ' + err);
+          }
         });
-  
-      const result = await response.json();
-  
-      if (response.ok) {
-        alert('Nombre actualizado con éxito');
-        // Redirigir o recargar si quieres
-      } else {
-        alert('Error: ' + (result.error || 'Error desconocido'));
       }
     });
   </script>
