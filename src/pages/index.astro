@@ -72,43 +72,6 @@ const articlesByCategory = Object.values(record).map(cat => ({
 <Layout>
 	<main class="bg-[#fcf7f8] p-10">
 		<h2 class="text-5xl font-semibold mb-3">Últimas noticias</h2>
-		<!-- Ultimas Noticias (Ultima Hora) -->
-		<!-- <div class="grid grid-cols-2 grid-rows-6 gap-4"> -->
-			<!-- {lastArticles?.slice(0, 2).map((article, i) => {
-				const rowStart = 1 + i * 3;
-				return (
-					<div class={`col-start-1 col-span-1 row-span-3 row-start-${rowStart}`}>
-						<ArticleCard
-							title={article.title}
-							summary={article.body}
-							image={article.imgurl}
-							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-							author={article.author?.full_name ?? "Anónimo"}
-							url={`/articulos/${article.id}`}
-							tags={article.tags}
-							featured={true}
-						/>
-					</div>
-				)
-			})}
-
-			<!-- Ultimas Noticias (No Ultima Hora) --><!--
-			{lastArticles?.slice(2, 5).map((article, i) => {
-				const rowStart = 1 + i * 2;
-				return (
-					<div class={`col-start-2 col-span-1 row-span-2 row-start-${rowStart}`}>
-						<ArticleCard
-							title={article.title}
-							summary={article.body}
-							image={article.imgurl}
-							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
-							author={article.author?.full_name ?? "Anónimo"}
-							url={`/articulos/${article.id}`}
-							tags={article.tags}
-						/>
-					</div>
-				)
-			})} -->
 
 			<div class="grid grid-cols-2 grid-rows-3 gap-4">
 			{
@@ -135,7 +98,7 @@ const articlesByCategory = Object.values(record).map(cat => ({
 						<div class={divClass}>
 							{console.log('Entra a forEach')}
 							<ArticleCard
-								title={`Principal ${article.title}`}
+								title={article.title}
 								summary={article.body}
 								image={article.imgurl ?? ''}
 								date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
