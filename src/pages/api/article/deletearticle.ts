@@ -12,23 +12,15 @@ export const POST: APIRoute = async ({ request }) => {
     .eq('id', id)
     .select();
 
-  /*const { data: deletedArticle, error: errorDeleteData } = await supabase
-    .from('article')
-    .select('*')
-    .eq('id', id);*/
-
   // Extraer el nombre del archivo de la URL de la imagen
   const img = deletedArticle?.[0]?.imgurl?.split("/").pop();
-  const imgWithSlash = img ? `/${img}` : null;
 
   // Eliminar la imagen del storage si existe
-  if (imgWithSlash) {
-    console.log("URL Original:", deletedArticle?.[0]?.imgurl);
-    console.log("Eliminando imagen:", imgWithSlash);
-    const { error: errorRemoveImg } = await supabase
-      .storage
+  if (img) {
+    const { error: errorRemoveImg } = await supabase.storage
       .from('articleimg')
-      .remove([imgWithSlash]);
+      .remove([img]);
+
     if (errorRemoveImg) {
       console.error("Error al eliminar la imagen del articulo:", errorRemoveImg);
       return new Response("Error al eliminar la imagen del articulo", { status: 500 });
