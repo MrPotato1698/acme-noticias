@@ -33,7 +33,7 @@ const { userRole } = Astro.props;
       </div>
     </a>
 
-    <a href="/admin/adminarticles" class="block px-4 py-2 text-sm text-dark hover:bg-light hover:text-accent" role="menuitem">
+    <a href="/admin/admin-article" class="block px-4 py-2 text-sm text-dark hover:bg-light hover:text-accent" role="menuitem">
       <div class="flex items-center space-x-2">
         <svg
           width="24"
@@ -56,7 +56,7 @@ const { userRole } = Astro.props;
     <!-- Opciones solo para administradores -->
     {userRole === 'Administrador' && (
       <>
-        <a href="/admin/adminusers" class="block px-4 py-2 text-sm text-dark hover:bg-light hover:text-accent" role="menuitem">
+        <a href="/admin/admin-author" class="block px-4 py-2 text-sm text-dark hover:bg-light hover:text-accent" role="menuitem">
           <div class="flex items-center space-x-2">
             <svg
               width="24"
@@ -72,7 +72,7 @@ const { userRole } = Astro.props;
               <path d="M6 21v-2a4 4 0 0 1 4 -4h3.5" />
               <path d="M18.42 15.61a2.1 2.1 0 0 1 2.97 2.97l-3.39 3.42h-3v-3l3.42 -3.39z" />
             </svg>
-            <span>Administrar usuarios</span>
+            <span>Administrar Redactores</span>
           </div>
         </a>
 
