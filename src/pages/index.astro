@@ -103,7 +103,7 @@ const articlesByCategory = Object.values(record).map(cat => ({
 								image={article.imgurl ?? ''}
 								date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
 								author={article.author?.full_name ?? "Anónimo"}
-								url={`/articulos/${article.id}`}
+								url={`/article/${article.id}`} 
 								tags={
 									[articleCategories?.find((obj) => obj.article.id === article.id)?.category?.name
 									].filter((tag): tag is string => typeof tag === 'string')
@@ -132,7 +132,7 @@ const articlesByCategory = Object.values(record).map(cat => ({
 							image={article.imgurl}
 							date={new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
 							author={article.author?.full_name ?? "Anónimo"}
-							url={`/articulos/${article.id}`}
+							url={`/article/${article.id}`}
 							tags={article.tags}
 						/>
 					</div>

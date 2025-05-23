@@ -10,8 +10,8 @@ if (!id) {
 
 const { data: article, error } = await supabase
   .from('article')
-  .select('*')
-  .eq('id', Number(id))
+  .select('*, profiles!inner(full_name)')
+  .eq('id', Number(id)).single();
 
 
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
@@ -19,22 +19,21 @@ const { data: article, error } = await supabase
 ---
 
 <Layout> 
-    <html lang="es">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>{article?.title}</title>
-      </head>
-      <body class="bg-white text-gray-800 font-sans leading-relaxed p-4">
-        <article class="max-w-3xl mx-auto">
-          <h1 class="text-4xl font-bold mb-4">{article.title}</h1>
-          <img src=`${article.imgurl}` alt="Imagen del artículo" class="w-full h-auto rounded mb-6" />
-          <div class="prose prose-lg mb-6" ><p> {article.body}</p></div>
+        <article class="max-w-3xl mx-auto my-15">
+          <h1 class="text-4xl font-bold mb-4">{article?.title}</h1>
+          <img src=`${article?.imgurl}` alt="Imagen del artículo" class="w-full h-auto rounded mb-6" />
+          <div class="prose prose-lg mb-6" ><p> {article?.body}</p></div>
           <div class="text-sm text-gray-600 border-t pt-4">
-            <p><strong>Autor:</strong>{article.author.full_name}</p>
-            <p><strong>Publicado el:</strong> {new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          <p><strong>Autor:</strong>{article?.profiles.full_name}</p>
+          <p>
+            <strong>Publicado el:</strong>{' '}
+            {new Date(String(article?.timestamp)).toLocaleDateString('es-ES', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })}
+          </p>          
+
           </div>
         </article>
-      </body>
-    </html>
 </Layout>
