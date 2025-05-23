@@ -1,36 +1,38 @@
 ---
 import Layout from '@/layouts/Layout.astro';
+import { supabase } from '@/db/supabase';
+
+const { id } = Astro.params;
+
+if (!id) {
+  throw new Error("ID de redactor no proporcionado.");
+}
+
+const { data: article, error } = await supabase
+  .from('article')
+  .select('*, profiles!inner(full_name)')
+  .eq('id', Number(id)).single();
+
 
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-    
-    
-    <html lang="es">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>El euro cae tanto como el reinato de Perro Sanchez</title>
-      </head>
-      <body class="bg-white text-gray-800 font-sans leading-relaxed p-4">
-        <article class="max-w-3xl mx-auto">
-          <h1 class="text-4xl font-bold mb-4">El campeonato definitivo de Perro sanchez y la petanca</h1>
-          <img src="public/petanca.png" alt="Imagen del artículo" class="w-full h-auto rounded mb-6" />
-          <div class="prose prose-lg mb-6" ><p>La petanca: tradición, precisión y estrategia.
-            La petanca es mucho más que un simple juego de bolas. Nacida en el sur de Francia a principios del siglo XX, esta disciplina ha trascendido fronteras y generaciones, convirtiéndose en un símbolo de convivencia, precisión y estrategia.
-            Se juega normalmente al aire libre, en terrenos de grava o arena, y enfrenta a dos jugadores o equipos. El objetivo es lanzar bolas metálicas lo más cerca posible de una bola más pequeña llamada *boliche* o *cochonet*. Aunque las reglas son simples, la petanca exige un alto grado de concentración y destreza para dominar los lanzamientos, bloquear al adversario y aprovechar cada jugada.
-            En muchos países, especialmente en Europa y América Latina, la petanca es una actividad social y competitiva a la vez. Asociaciones y clubes organizan torneos regionales e internacionales que reúnen a jugadores de todas las edades.
-            Más allá de la competencia, la petanca ofrece beneficios físicos y mentales: mejora la coordinación, promueve el ejercicio suave y fomenta la paciencia y el trabajo en equipo.
-            Ya sea bajo el sol mediterráneo o en una plaza de barrio, la petanca continúa siendo un juego que une a las personas en torno a la diversión y el respeto por la tradición.
-            </p></div>
+<Layout> 
+        <article class="max-w-3xl mx-auto my-15">
+          <h1 class="text-4xl font-bold mb-4">{article?.title}</h1>
+          <img src=`${article?.imgurl}` alt="Imagen del artículo" class="w-full h-auto rounded mb-6" />
+          <div class="prose prose-lg mb-6" ><p> {article?.body}</p></div>
           <div class="text-sm text-gray-600 border-t pt-4">
-            <p><strong>Autor:</strong> Pepe el de los palotes</p>
-            <p><strong>Publicado el:</strong> 13/05/2025</p>
+          <p><strong>Autor:</strong>{article?.profiles.full_name}</p>
+          <p>
+            <strong>Publicado el:</strong>{' '}
+            {new Date(String(article?.timestamp)).toLocaleDateString('es-ES', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })}
+          </p>          
           </div>
         </article>
-      </body>
-    </html>
-    
 </Layout>
