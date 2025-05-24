@@ -2,6 +2,8 @@
 import Header from "@/components/Header.astro";
 import "@/styles/global.css";
 import Footer from "@/components/Footer.astro";
+
+const { title } = Astro.props;
 ---
 
 <!doctype html>
@@ -12,7 +14,7 @@ import Footer from "@/components/Footer.astro";
 		<link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" />
 		<link rel="icon" type = "image/svg+xml" href="/favicon.svg" media="(prefers-color-scheme: dark" />
 		<meta name="generator" content={Astro.generator} />
-		<title>IBÑ News</title>
+		<title>{title}</title>
 	</head>
 	<body>
 		<Header />
