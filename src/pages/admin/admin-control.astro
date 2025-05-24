@@ -42,7 +42,7 @@ const { data: userData } = await supabase
   .single();
 
 if (userData == null || userData.rol == null || userData.rol > 1) {
-  return redirect("/index");
+  return redirect("/");
 }
 
 const title = "Panel de Administración";

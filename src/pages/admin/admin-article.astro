@@ -40,7 +40,7 @@ const { data: userData } = await supabase
   .single();
 
 if (userData == null || userData.rol == null || userData.rol > 2) {
-  return redirect("/index");
+  return redirect("/");
 }
 
 // Obtenemos los parámetros de búsqueda de la URL
