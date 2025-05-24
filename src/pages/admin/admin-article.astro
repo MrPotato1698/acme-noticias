@@ -2,6 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 
 import { supabase } from "@/db/supabase";
+import Pagination from "../../components/Pagination.astro";
 
 const { cookies, redirect } = Astro;
 
@@ -36,18 +37,36 @@ const { data: userData } = await supabase
   .eq("id", id)
   .single();
 
-const { data: articlesData, error: errorArticlesData } = await supabase
+// Obtenemos los parámetros de búsqueda de la URL
+const url = Astro.url;
+const searchParams = url.searchParams;
+
+// Parámetros de paginación
+const ITEMS_PER_PAGE = 5;
+const currentPage = parseInt(searchParams.get("page") || "1");
+const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+const {
+  data: articlesData,
+  error: errorArticlesData,
+  count: articlesCount,
+} = await supabase
   .from("article")
-  .select("id, title, body, timestamp, author!inner(id, full_name) ")
-  .order("timestamp", { ascending: false });
+  .select("id, title, body, timestamp, author!inner(id, full_name) ", {
+    count: "exact",
+  })
+  .order("timestamp", { ascending: false })
+  .range(offset, offset + ITEMS_PER_PAGE - 1);
 
 if (errorArticlesData || !articlesData) {
   console.error("Error fetching articles:", errorArticlesData);
 }
 
 let articlesDataAuthor;
-if(articlesData && userData?.rol.name === "Redactor"){
-  articlesDataAuthor = articlesData.filter((article) => article.author.id === id);
+if (articlesData && userData?.rol.name === "Redactor") {
+  articlesDataAuthor = articlesData.filter(
+    (article) => article.author.id === id,
+  );
 } else {
   articlesDataAuthor = articlesData;
 }
@@ -60,27 +79,45 @@ const { data: categoriesArticlesData, error: errorCategoriesArticlesData } =
 if (errorCategoriesArticlesData || !categoriesArticlesData) {
   console.error("Error fetching categories:", errorCategoriesArticlesData);
 }
+
+const totalPages = Math.max(
+  1,
+  Math.ceil((articlesCount ?? 0) / ITEMS_PER_PAGE),
+);
+
+const paginationBaseUrl = new URL(url);
+paginationBaseUrl.searchParams.delete("page"); // Eliminamos el parámetro de página actual
+const baseUrl = paginationBaseUrl.toString();
 ---
 
 <Layout>
-
   <div class="max-w-7xl mx-auto p-8">
     <h1 class="text-4xl font-bold mb-4">Administar Articulos</h1>
 
     <div class="flex justify-end mb-4">
-      <a href='/newarticle' class="bg-blue-600 text-white py-2 px-4 rounded">Añadir nuevos articulos</a>
+      <a href="/newarticle" class="bg-blue-600 text-white py-2 px-4 rounded"
+        >Añadir nuevos articulos</a
+      >
     </div>
 
     <div class="overflow-x-auto bg-white rounded-lg shadow-md">
       <table class="w-full border-collapse">
         <thead>
           <tr>
-            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Titulo</th>
-            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Cuerpo</th>
-            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Categorias</th>
-            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Publicado</th>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Titulo</th
+            >
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Cuerpo</th
+            >
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left"
+              >Categorias</th
+            >
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left"
+              >Publicado</th
+            >
             <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Autor</th>
-            <th class="bg-gray-100 font-semibold py-3 px-4 text-left">Acciones</th>
+            <th class="bg-gray-100 font-semibold py-3 px-4 text-left"
+              >Acciones</th
+            >
           </tr>
         </thead>
 
@@ -90,37 +127,46 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
               <tr class="hover:bg-gray-50 table-row">
                 <td class="font-medium max-w-xs py-3 px-4">{article.title}</td>
                 <td class="text-sm py-3 px-4">
-                    <div class="line-clamp-3 overflow-hidden text-ellipsis max-w-2xl">
-                  {article.body}
+                  <div class="line-clamp-3 overflow-hidden text-ellipsis max-w-2xl">
+                    {article.body}
                   </div>
                 </td>
                 <td class="gap-2 py-3 px-4">
                   <div class="flex flex-wrap gap-2">
-                  {
-                    categoriesArticlesData
-                    ?.filter((obj) => obj.article === article.id)
-                    .map((obj) => (
-                      <span class="bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 text-xs font-medium">
-                      {obj.category?.name}
-                      </span>
-                    ))
-                  }
+                    {categoriesArticlesData
+                      ?.filter((obj) => obj.article === article.id)
+                      .map((obj) => (
+                        <span class="bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 text-xs font-medium">
+                          {obj.category?.name}
+                        </span>
+                      ))}
                   </div>
                 </td>
-                <td class="py-3 px-4">{new Date(article.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric'})}</td>
+                <td class="py-3 px-4">
+                  {new Date(article.timestamp).toLocaleDateString("es-ES", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </td>
                 <td class="py-3 px-4">{article.author.full_name ?? "Anom"}</td>
                 <td class="px-4 my-5 grid grid-rows-3 gap-2 ">
-                  <a href={`http://localhost:4321/admin/article/${article.id}`}
-                    class="bg-primary text-center text-light px-4 py-2 rounded hover:bg-primary/90 text-sm cursor-pointer">
+                  <a
+                    href={`http://localhost:4321/admin/article/${article.id}`}
+                    class="bg-primary text-center text-light px-4 py-2 rounded hover:bg-primary/90 text-sm cursor-pointer"
+                  >
                     Modificar
                   </a>
-                  <a href={`http://localhost:4321/admin/article/${article.id}/commentaries`}
-                    class="bg-accent text-center text-light px-4 py-2 rounded hover:bg-accent/90 text-sm cursor-pointer">
+                  <a
+                    href={`http://localhost:4321/admin/article/${article.id}/commentaries`}
+                    class="bg-accent text-center text-light px-4 py-2 rounded hover:bg-accent/90 text-sm cursor-pointer"
+                  >
                     Comentarios
                   </a>
                   <button
                     class="btn-delete bg-red-700 text-light px-4 py-2 rounded hover:bg-red-800 text-sm cursor-pointer"
-                    data-id={article.id}>
+                    data-id={article.id}
+                  >
                     Borrar
                   </button>
                 </td>
@@ -130,6 +176,15 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
         </tbody>
       </table>
     </div>
+    {
+      totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          baseUrl={baseUrl}
+        />
+      )
+    }
   </div>
 </Layout>
 
@@ -150,7 +205,8 @@ if (errorCategoriesArticlesData || !categoriesArticlesData) {
         e.preventDefault();
         const articleId = button.getAttribute("data-id");
         if (!articleId) return;
-        if (!confirm("¿Estás seguro de que quieres eliminar este artículo?")) return;
+        if (!confirm("¿Estás seguro de que quieres eliminar este artículo?"))
+          return;
         try {
           const response = await fetch(`/api/article/deletearticle`, {
             method: "POST",
