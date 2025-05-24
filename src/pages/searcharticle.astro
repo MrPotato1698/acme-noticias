@@ -44,9 +44,9 @@ try {
       .from('articlecategories')
       .select('article')
       .eq('category', parseInt(categoryId));
-    
+
     const categoryArticleIds = articleCategoriesData?.map(ac => ac.article) || [];
-    
+
     if (categoryArticleIds.length > 0) {
       // Filtramos la consulta base para incluir solo artículos con la categoría seleccionada
       baseQuery = baseQuery.in('id', categoryArticleIds);
@@ -58,7 +58,7 @@ try {
 
   // Ejecutamos la consulta para obtener los IDs filtrados
   const { data: filteredIds, count } = await baseQuery;
-  
+
   if (filteredIds) {
     filteredArticleIds = filteredIds.map(item => item.id);
     totalCount = count || filteredIds.length;
@@ -80,28 +80,28 @@ if (filteredArticleIds.length > 0) {
     let articlesQuery = supabase
       .from('article')
       .select(`
-        id, 
-        title, 
+        id,
+        title,
         body,
         timestamp,
         author,
         profiles!article_author_fkey (id, full_name, email)
       `)
       .in('id', filteredArticleIds);
-    
+
     // Aplicamos ordenamiento
     if (sort === 'newest') {
       articlesQuery = articlesQuery.order('timestamp', { ascending: false });
     } else if (sort === 'oldest') {
       articlesQuery = articlesQuery.order('timestamp', { ascending: true });
     }
-    
+
     // Aplicamos paginación
     articlesQuery = articlesQuery.range(offset, offset + ITEMS_PER_PAGE - 1);
-    
+
     // Ejecutamos la consulta
     const { data: articles, error } = await articlesQuery;
-    
+
     if (error) {
       articlesError = error;
     } else if (articles) {
@@ -169,7 +169,7 @@ if (categoryId) {
       .select('name')
       .eq('id', parseInt(categoryId))
       .single();
-    
+
     if (categoryData) {
       categoryName = categoryData.name;
     }
@@ -187,7 +187,7 @@ if (authorId) {
       .select('full_name')
       .eq('id', authorId)
       .single();
-    
+
     if (authorData) {
       authorName = authorData.full_name || '';
     }
@@ -202,18 +202,18 @@ paginationBaseUrl.searchParams.delete('page'); // Eliminamos el parámetro de p�
 const baseUrl = paginationBaseUrl.toString();
 ---
 
-<Layout title={pageTitle}>
+<Layout title = "IBÑ News - Buscar Articulos">
 
   <main class="flex flex-col md:flex-row min-h-screen bg-[#fcf7f8]">
     <!-- Sidebar de búsqueda -->
     <div class="w-full md:w-64 md:min-h-screen border-b md:border-b-0 md:border-r border-[#2a2b2a]/10">
       <SearchSidebar />
     </div>
-    
+
     <!-- Contenido principal -->
     <div class="flex-1 p-6">
       <h1 class="text-2xl font-bold text-[#2a2b2a] mb-6">{pageTitle}</h1>
-      
+
       <!-- Resumen de filtros aplicados -->
       <div class="mb-6">
         {(query || categoryId || authorId || sort !== 'newest') && (
@@ -225,19 +225,19 @@ const baseUrl = paginationBaseUrl.toString();
                   Búsqueda: {query}
                 </span>
               )}
-              
+
               {categoryId && categoryName && (
                 <span class="inline-flex items-center px-2 py-1 rounded-md text-xs bg-[#a31621]/10 text-[#a31621]">
                   Categoría: {categoryName}
                 </span>
               )}
-              
+
               {authorId && authorName && (
                 <span class="inline-flex items-center px-2 py-1 rounded-md text-xs bg-[#ffbe0b]/10 text-[#2a2b2a]">
                   Redactor: {authorName}
                 </span>
               )}
-              
+
               {sort !== 'newest' && (
                 <span class="inline-flex items-center px-2 py-1 rounded-md text-xs bg-[#2a2b2a]/10 text-[#2a2b2a]">
                   Orden: {sort === 'oldest' ? 'Más antiguas primero' : 'Relevancia'}
@@ -247,7 +247,7 @@ const baseUrl = paginationBaseUrl.toString();
           </div>
         )}
       </div>
-      
+
       <!-- Información de resultados y paginación -->
       <div class="flex justify-between items-center mb-4">
         <p class="text-sm text-[#2a2b2a]/70">
@@ -255,7 +255,7 @@ const baseUrl = paginationBaseUrl.toString();
           {totalPages > 1 && ` • Página ${currentPage} de ${totalPages}`}
         </p>
       </div>
-      
+
       <!-- Resultados de la búsqueda -->
       <div class="space-y-6">
         {articlesError && (
@@ -264,14 +264,14 @@ const baseUrl = paginationBaseUrl.toString();
             <p class="text-xs mt-1">{JSON.stringify(articlesError)}</p>
           </div>
         )}
-        
+
         {articlesWithCategories.length === 0 && (
           <div class="text-center py-12">
             <p class="text-lg text-[#2a2b2a]/70">No se encontraron resultados para tu búsqueda.</p>
             <p class="mt-2 text-sm text-[#2a2b2a]/50">Intenta con otros términos o filtros.</p>
           </div>
         )}
-        
+
         {articlesWithCategories.map((article) => (
           <article class="bg-white border border-[#2a2b2a]/10 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <div class="p-4">
@@ -289,22 +289,22 @@ const baseUrl = paginationBaseUrl.toString();
                   })}
                 </span>
               </div>
-              
+
               <h2 class="text-xl font-bold text-[#2a2b2a] mb-2">
                 <a href={`/articulos/${article.id}`} class="hover:text-[#23b5d3] transition-colors">
                   {article.title}
                 </a>
               </h2>
-              
+
               <p class="text-[#2a2b2a]/80 mb-4">
                 {article.excerpt}
               </p>
-              
+
               <div class="flex justify-between items-center">
                 <a href={`/articulos/${article.id}`} class="text-[#23b5d3] hover:underline">
                   Leer más
                 </a>
-                
+
                 <div class="flex items-center">
                   <span class="text-sm text-[#2a2b2a]/70">Por </span>
                   <a href={`/buscar?author=${article.profiles?.id}`} class="ml-1 text-sm font-medium text-[#2a2b2a] hover:text-[#a31621]">
@@ -316,13 +316,13 @@ const baseUrl = paginationBaseUrl.toString();
           </article>
         ))}
       </div>
-      
+
       <!-- Paginación -->
       {totalPages > 1 && (
-        <Pagination 
-          currentPage={currentPage} 
-          totalPages={totalPages} 
-          baseUrl={baseUrl} 
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          baseUrl={baseUrl}
         />
       )}
     </div>

@@ -2,7 +2,7 @@
 import Layout from "@/layouts/Layout.astro";
 
 import { supabase } from "@/db/supabase";
-import Pagination from "../../components/Pagination.astro";
+import Pagination from "@/components/Pagination.astro";
 
 const { cookies, redirect } = Astro;
 
@@ -10,13 +10,13 @@ const accessToken = cookies.get("sb-access-token");
 const refreshToken = cookies.get("sb-refresh-token");
 
 if (!accessToken || !refreshToken) {
-  redirect("/login");
+  return redirect("/login");
 }
 
 // Set the session with the cookies
 const { data: dataAuth, error: errorAuth } = await supabase.auth.setSession({
-  refresh_token: refreshToken?.value ?? "",
-  access_token: accessToken?.value ?? "",
+  refresh_token: refreshToken.value,
+  access_token: accessToken.value,
 });
 
 // If there is an error, delete the cookies and redirect to login
@@ -27,15 +27,21 @@ if (errorAuth) {
   cookies.delete("sb-refresh-token", {
     path: "/",
   });
+
+  return redirect("/login");
 }
 
 const id = dataAuth?.user?.id || "";
 
 const { data: userData } = await supabase
   .from("profiles")
-  .select("rol!inner(name)")
+  .select("rol")
   .eq("id", id)
   .single();
+
+if (userData == null || userData.rol == null || userData.rol > 1) {
+  return redirect("/index");
+}
 
 // Obtenemos los parámetros de búsqueda de la URL
 const url = Astro.url;
@@ -46,30 +52,23 @@ const ITEMS_PER_PAGE = 5;
 const currentPage = parseInt(searchParams.get("page") || "1");
 const offset = (currentPage - 1) * ITEMS_PER_PAGE;
 
-const {
-  data: articlesData,
-  error: errorArticlesData,
-  count: articlesCount,
-} = await supabase
+// Consulta optimizada según el rol del usuario
+let articlesQuery = supabase
   .from("article")
-  .select("id, title, body, timestamp, author!inner(id, full_name) ", {
-    count: "exact",
-  })
-  .order("timestamp", { ascending: false })
-  .range(offset, offset + ITEMS_PER_PAGE - 1);
+  .select("id, title, body, timestamp, author!inner(id, full_name)", { count: "exact" })
+  .order("timestamp", { ascending: false });
+
+if (userData?.rol === 2) {
+  articlesQuery = articlesQuery.eq("author", id);
+}
+
+const { data: articlesData, error: errorArticlesData, count: articlesCount } = await articlesQuery.range(offset, offset + ITEMS_PER_PAGE - 1);
 
 if (errorArticlesData || !articlesData) {
   console.error("Error fetching articles:", errorArticlesData);
 }
 
-let articlesDataAuthor;
-if (articlesData && userData?.rol.name === "Redactor") {
-  articlesDataAuthor = articlesData.filter(
-    (article) => article.author.id === id,
-  );
-} else {
-  articlesDataAuthor = articlesData;
-}
+const articlesDataAuthor = articlesData;
 
 const { data: categoriesArticlesData, error: errorCategoriesArticlesData } =
   await supabase
@@ -90,7 +89,7 @@ paginationBaseUrl.searchParams.delete("page"); // Eliminamos el parámetro de p�
 const baseUrl = paginationBaseUrl.toString();
 ---
 
-<Layout>
+<Layout title = "IBÑ News - Administrar Articulos">
   <div class="max-w-7xl mx-auto p-8">
     <h1 class="text-4xl font-bold mb-4">Administar Articulos</h1>
 

@@ -2,211 +2,223 @@
 import Layout from "@/layouts/Layout.astro";
 import { supabase } from "@/db/supabase";
 
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  return redirect("/login");
+}
+
+// Set the session with the cookies
+const { data: dataAuth, error: errorAuth } = await supabase.auth.setSession({
+  refresh_token: refreshToken.value,
+  access_token: accessToken.value,
+});
+
+// If there is an error, delete the cookies and redirect to login
+if (errorAuth) {
+  cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+
+  return redirect("/login");
+}
+
+const idUser = dataAuth?.user?.id || "";
+
+const { data: userData } = await supabase
+  .from("profiles")
+  .select("rol")
+  .eq("id", idUser)
+  .single();
+
+if (userData == null || userData.rol == null || userData.rol > 1) {
+  return redirect("/index");
+}
+
 const { id } = Astro.params;
 
 if (!id) {
-    throw new Error("ID de articulo no proporcionado.");
+  throw new Error("ID de articulo no proporcionado.");
 }
+
 const { data, error } = await supabase
-    .from("article")
-    .select(
-        `
-            title,
-            body,
-            timestamp,
-            author,
-            profiles!article_author_fkey(id,full_name,email),
-            articlecategories(
-                category(
-                    id, name, description
-                )
-            ),
-            imgurl
-        `,
-    )
-    .eq("id", Number(id))
-    .single();
+  .from("article")
+  .select(`title,
+    body,
+    timestamp,
+    author,
+    profiles!article_author_fkey(id,full_name,email),
+    articlecategories(category(id, name, description)),
+    imgurl`
+  )
+  .eq("id", Number(id))
+  .single();
 
 if (error) {
-    throw new Error(`Error al obtener el artículo: ${error.message}`);
+  throw new Error(`Error al obtener el artículo: ${error.message}`);
 }
 
 const { data: categoriesData } = await supabase.from("category").select("*");
 const selectedCategoryIds =
-    data?.articlecategories?.map((ac) => ac.category.id) ?? [];
+  data?.articlecategories?.map((ac) => ac.category.id) ?? [];
 ---
 
-<Layout>
-    <div class="container mx-auto px-4">
-        <h1 class="text-4xl font-bold mb-4">Actualizar Articulo</h1>
+<Layout title = "IBÑ News - Actualizar Articulo">
+  <div class="container mx-auto px-4">
+    <h1 class="text-4xl font-bold mb-4">Actualizar Articulo</h1>
 
-        <form
-            id="formArticle"
-            action="/api/article/updatearticle"
-            method="POST"
-            class="space-y-4"
-            id="articleForm"
-        >
-            <input type="hidden" name="id" value={id} />
+    <form
+      id="formArticle"
+      action="/api/article/updatearticle"
+      method="POST"
+      class="space-y-4"
+      id="articleForm"
+    >
+      <input type="hidden" name="id" value={id} />
+      <div>
+        <label for="title" class="block text-xl font-medium text-gray-700 mb-1">
+          Título
+        </label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          required
+          class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+          value={data?.title ?? ""}
+        />
+      </div>
 
-            <div>
-                <label
-                    for="title"
-                    class="block text-xl font-medium text-gray-700 mb-1"
-                    >Título</label
-                >
+      <div>
+        <label
+          for="content"
+          class="block text-xl font-medium text-gray-700 mb-1">Contenido
+        </label>
+        <textarea
+          id="content"
+          name="content"
+          rows="6"
+          required
+          class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
+          set:text={data?.body ?? ""}
+        />
+      </div>
+
+      <div>
+        <label class="block text-xl font-medium text-gray-700 mb-1">
+          Categorías
+        </label>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {
+            categoriesData?.map((category) => (
+              <div class="flex items-center">
                 <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    required
-                    class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-                    value={data?.title ?? ""}
+                  type="checkbox"
+                  id={`category-${category.id}`}
+                  name="categories[]"
+                  value={category.id}
+                  class="mr-2 h-5 w-5 text-blue-600"
+                  checked={selectedCategoryIds.includes(category.id)}
                 />
-            </div>
+                <label for={`category-${category.id}`} class="text-gray-700">
+                  {category.name}
+                </label>
+              </div>
+            ))
+          }
+        </div>
+      </div>
 
-            <div>
-                <label
-                    for="content"
-                    class="block text-xl font-medium text-gray-700 mb-1"
-                    >Contenido</label
-                >
-                <textarea
-                    id="content"
-                    name="content"
-                    rows="6"
-                    required
-                    class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600"
-                    set:text={data?.body ?? ""}
-                />
-            </div>
+      <div>
+        <label class="block text-xl font-medium text-gray-700 mb-1">
+          Imágenes
+        </label>
 
-            <div>
-                <label class="block text-xl font-medium text-gray-700 mb-1"
-                    >Categorías</label
-                >
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {
-                        categoriesData?.map((category) => (
-                            <div class="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id={`category-${category.id}`}
-                                    name="categories[]"
-                                    value={category.id}
-                                    class="mr-2 h-5 w-5 text-blue-600"
-                                    checked={selectedCategoryIds.includes(
-                                        category.id,
-                                    )}
-                                />
-                                <label
-                                    for={`category-${category.id}`}
-                                    class="text-gray-700"
-                                >
-                                    {category.name}
-                                </label>
-                            </div>
-                        ))
-                    }
+        {
+          data?.imgurl ? (
+            <div id="preview" class="flex flex-wrap gap-2 mt-2">
+              <img
+                src={data.imgurl}
+                alt="Imagen del artículo"
+                class="h-32 rounded-md border"
+              />
+            </div>
+          ) : (
+            <>
+              <div
+                id="dropzone"
+                class="flex items-center justify-center w-full h-32 border-2 border-dashed border-blue-400 rounded-md bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
+              >
+                <div class="text-center">
+                  <p class="text-blue-600 font-medium">
+                    Arrastra y suelta imágenes aquí o haz clic para seleccionar
+                  </p>
+                  <p class="text-sm text-gray-500">Solo se aceptan imágenes</p>
                 </div>
-            </div>
+              </div>
+              <input
+                type="file"
+                id="images"
+                name="images"
+                accept="image/*"
+                class="hidden"
+              />
+              <div id="preview" class="flex flex-wrap gap-2 mt-2" />
+            </>
+          )
+        }
 
-            <div>
-                <label class="block text-xl font-medium text-gray-700 mb-1"
-                    >Imágenes</label
-                >
+        <input
+          type="hidden"
+          name="imgurl"
+          id="imgurl"
+          value={data?.imgurl ?? ""}
+        />
+      </div>
 
-                {
-                    data?.imgurl ? (
-                        <div id="preview" class="flex flex-wrap gap-2 mt-2">
-                            <img
-                                src={data.imgurl}
-                                alt="Imagen del artículo"
-                                class="h-32 rounded-md border"
-                            />
-                        </div>
-                    ) : (
-                        <>
-                            <div
-                                id="dropzone"
-                                class="flex items-center justify-center w-full h-32 border-2 border-dashed border-blue-400 rounded-md bg-blue-50 hover:bg-blue-100 transition cursor-pointer"
-                            >
-                                <div class="text-center">
-                                    <p class="text-blue-600 font-medium">
-                                        Arrastra y suelta imágenes aquí o haz
-                                        clic para seleccionar
-                                    </p>
-                                    <p class="text-sm text-gray-500">
-                                        Solo se aceptan imágenes
-                                    </p>
-                                </div>
-                            </div>
-                            <input
-                                type="file"
-                                id="images"
-                                name="images"
-                                accept="image/*"
-                                class="hidden"
-                            />
-                            <div
-                                id="preview"
-                                class="flex flex-wrap gap-2 mt-2"
-                            />
-                        </>
-                    )
-                }
-
-                <input
-                    type="hidden"
-                    name="imgurl"
-                    id="imgurl"
-                    value={data?.imgurl ?? ""}
-                />
-            </div>
-
-            <button
-                type="submit"
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition"
-            >
-                Actualizar Articulo
-            </button>
-        </form>
-    </div>
+      <button
+        type="submit"
+        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-md shadow-md transition"
+      >
+        Actualizar Articulo
+      </button>
+    </form>
+  </div>
 </Layout>
 <script>
-    document
-        .getElementById("formArticle")
-        ?.addEventListener("submit", async function (e) {
-            e.preventDefault();
+  document.getElementById("formArticle")?.addEventListener("submit", async function (e) {
+      e.preventDefault();
 
-            const formulario = document.getElementById("formArticle");
-            if (!(formulario instanceof HTMLFormElement)) {
-                alert("No se encontró el formulario.");
-                return;
-            }
-            const formData = new FormData(formulario);
+      const formulario = document.getElementById("formArticle");
+      if (!(formulario instanceof HTMLFormElement)) {
+        alert("No se encontró el formulario.");
+        return;
+      }
+      const formData = new FormData(formulario);
 
-            const response = await fetch("/api/article/updatearticle", {
-                method: "POST",
-                body: formData,
-            });
+      const response = await fetch("/api/article/updatearticle", {
+        method: "POST",
+        body: formData,
+      });
 
-            let result: { error?: string } = {};
-            if (
-                response.headers
-                    .get("content-type")
-                    ?.includes("application/json")
-            ) {
-                result = await response.json();
-            } else {
-                result = { error: "Respuesta inesperada del servidor" };
-            }
+      let result: { error?: string } = {};
+      if (response.headers.get("content-type")?.includes("application/json")) {
+        result = await response.json();
+      } else {
+        result = { error: "Respuesta inesperada del servidor" };
+      }
 
-            if (response.ok) {
-                alert("Articulo actualizado correctamente");
-                window.location.reload();
-            } else {
-                alert("Error: " + (result.error || "Error desconocido"));
-            }
-        });
+      if (response.ok) {
+        alert("Articulo actualizado correctamente");
+        window.location.reload();
+      } else {
+        alert("Error: " + (result.error || "Error desconocido"));
+      }
+    });
 </script>

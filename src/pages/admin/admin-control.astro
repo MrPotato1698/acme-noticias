@@ -1,0 +1,73 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import StatsPanel from '@/components/StatsPanel.astro';
+import CategoryManager from '@/components/CategoryManager.astro';
+import { supabase } from '@/db/supabase';
+
+// Verificar si el usuario es administrador (puedes ajustar esta lógica según tu sistema de roles)
+// Por ahora, asumimos que existe una verificación de rol de administrador
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  return redirect("/login");
+}
+
+// Set the session with the cookies
+const { data: dataAuth, error: errorAuth } = await supabase.auth.setSession({
+  refresh_token: refreshToken.value,
+  access_token: accessToken.value,
+});
+
+// If there is an error, delete the cookies and redirect to login
+if (errorAuth) {
+  cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+
+  return redirect("/login");
+}
+
+const id = dataAuth?.user?.id || "";
+
+const { data: userData } = await supabase
+  .from("profiles")
+  .select("rol")
+  .eq("id", id)
+  .single();
+
+if (userData == null || userData.rol == null || userData.rol > 1) {
+  return redirect("/index");
+}
+
+const title = "Panel de Administración";
+---
+
+<Layout title = "IBÑ News - Panel de Administración">
+  <div class="min-h-screen bg-gray-50">
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-dark">Panel de Administración</h1>
+        <p class="mt-2 text-gray-600">Gestiona tu sitio de noticias y visualiza estadísticas importantes</p>
+      </div>
+
+      <!-- Stats Panel -->
+      <div class="mb-12">
+        <h2 class="text-2xl font-semibold text-dark mb-6">Estadísticas del Sitio</h2>
+        <StatsPanel />
+      </div>
+
+      <!-- Category Manager -->
+      <div>
+        <h2 class="text-2xl font-semibold text-dark mb-6">Gestión de Categorías</h2>
+        <CategoryManager />
+      </div>
+    </div>
+  </div>
+</Layout>
