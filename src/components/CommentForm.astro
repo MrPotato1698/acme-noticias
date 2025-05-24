@@ -1,0 +1,111 @@
+---
+const { articleId } = Astro.props;
+---
+
+<div class="mt-8">
+  <h3 class="text-xl font-semibold mb-4 text-dark">Deja tu comentario</h3>
+
+  <form id="comment-form" class="space-y-4">
+    <div>
+      <textarea
+        id="comment-text"
+        name="comment"
+        rows="4"
+        maxlength="500"
+        placeholder="Escribe tu comentario aquí... (máximo 500 caracteres)"
+        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+        required
+      ></textarea>
+      <div class="flex justify-between items-center mt-2">
+        <span id="char-count" class="text-sm text-gray-500">0/500 caracteres</span>
+        <button
+          type="submit"
+          id="submit-btn"
+          class="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Publicar comentario
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <div id="comment-status" class="mt-4 hidden">
+    <div id="success-message" class="hidden p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+      ¡Comentario publicado exitosamente!
+    </div>
+    <div id="error-message" class="hidden p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+      Error al publicar el comentario. Inténtalo de nuevo.
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ articleId }}>
+  const form = document.getElementById('comment-form');
+  const textarea = document.getElementById('comment-text');
+  const charCount = document.getElementById('char-count');
+  const submitBtn = document.getElementById('submit-btn');
+  const statusDiv = document.getElementById('comment-status');
+  const successMsg = document.getElementById('success-message');
+  const errorMsg = document.getElementById('error-message');
+
+  // Contador de caracteres
+  textarea.addEventListener('input', function() {
+    const length = this.value.length;
+    charCount.textContent = `${length}/500 caracteres`;
+
+    if (length > 450) {
+      charCount.classList.add('text-red-500');
+      charCount.classList.remove('text-gray-500');
+    } else {
+      charCount.classList.add('text-gray-500');
+      charCount.classList.remove('text-red-500');
+    }
+  });
+
+  // Envío del formulario
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const comment = textarea.value.trim();
+    if (!comment) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Publicando...';
+
+    try {
+      const response = await fetch('/api/article/commentaries/newcomment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Incluir cookies de sesión
+        body: JSON.stringify({
+          article: articleId,
+          comment: comment
+        })
+      });
+
+      if (response.ok) {
+        textarea.value = '';
+        charCount.textContent = '0/500 caracteres';
+        statusDiv.classList.remove('hidden');
+        successMsg.classList.remove('hidden');
+        errorMsg.classList.add('hidden');
+
+        // Recargar comentarios
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        throw new Error('Error en la respuesta del servidor');
+      }
+    } catch (error) {
+      statusDiv.classList.remove('hidden');
+      errorMsg.classList.remove('hidden');
+      successMsg.classList.add('hidden');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Publicar comentario';
+    }
+  });
+</script>

@@ -3,11 +3,6 @@ import Layout from '@/layouts/Layout.astro';
 import ArticleCard from '@/components/ArticleCard.astro';
 import { supabase } from '@/db/supabase';
 
-/*
-TODO:
-- CORREGIR GRID
-- Refactorizar y manejar errores
-*/
 
 // Consulta artículos con sus categorías
 const {data: articleCategories} = await supabase
@@ -96,7 +91,6 @@ const articlesByCategory = Object.values(record).map(cat => ({
 					}
 					return (
 						<div class={divClass}>
-							{console.log('Entra a forEach')}
 							<ArticleCard
 								title={article.title}
 								summary={article.body}

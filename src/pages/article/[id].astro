@@ -1,6 +1,8 @@
 ---
 import Layout from '@/layouts/Layout.astro';
 import { supabase } from '@/db/supabase';
+import CommentsList from '@/components/CommentsList.astro';
+import CommentForm from '@/components/CommentForm.astro';
 
 const { id } = Astro.params;
 
@@ -13,26 +15,32 @@ const { data: article, error } = await supabase
   .select('*, profiles!inner(full_name)')
   .eq('id', Number(id)).single();
 
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+if (error || !article) {
+  throw new Error("Artículo no encontrado.");
+}
 ---
 
-<Layout> 
-        <article class="max-w-3xl mx-auto my-15">
-          <h1 class="text-4xl font-bold mb-4">{article?.title}</h1>
-          <img src=`${article?.imgurl}` alt="Imagen del artículo" class="w-full h-auto rounded mb-6" />
-          <div class="prose prose-lg mb-6" ><p> {article?.body}</p></div>
-          <div class="text-sm text-gray-600 border-t pt-4">
-          <p><strong>Autor:</strong>{article?.profiles.full_name}</p>
-          <p>
-            <strong>Publicado el:</strong>{' '}
-            {new Date(String(article?.timestamp)).toLocaleDateString('es-ES', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-            })}
-          </p>          
-          </div>
-        </article>
+<Layout>
+  <article class="max-w-3xl mx-auto my-8">
+    <h1 class="text-4xl font-bold mb-4">{article?.title}</h1>
+    <img src=`${article?.imgurl}` alt="Imagen del artículo" class="w-full h-auto rounded mb-6" />
+    <div class="prose prose-lg mb-6" ><p> {article?.body}</p></div>
+    <div class="text-sm text-gray-600 border-t py-4">
+      <p><strong>Autor: </strong>{article?.profiles.full_name}</p>
+      <p>
+        <strong>Publicado el:</strong>{' '}
+        {new Date(String(article?.timestamp)).toLocaleDateString('es-ES', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })}
+      </p>
+    </div>
+
+    <!-- Sección de comentarios -->
+    <section class="border-t">
+      <CommentForm articleId={article.id} />
+      <CommentsList articleId={article.id} articleAuthor={article.author} />
+    </section>
+  </article>
 </Layout>
