@@ -1,6 +1,5 @@
 ---
 import Layout from "@/layouts/Layout.astro";
-
 import { supabase } from "@/db/supabase";
 
 const { cookies, redirect } = Astro;
@@ -35,25 +34,42 @@ if (errorAuth) {
 
 const id = dataAuth?.user?.id || "";
 
-const { data: userData } = await supabase
-  .from("profiles")
-  .select("rol!inner(name)")
-  .eq("id", id)
-  .single();
-
 const { data: commentariesData, error: errorCommentariesData } = await supabase
   .from("commentary")
-  .select("id, redactor!inner(full_name), comment, timestamp")
+  .select("id, redactor, comment, timestamp")
   .eq("article", parseInt(articleId))
   .order("timestamp", { ascending: true });
 
 if (errorCommentariesData || !commentariesData) {
   console.error("Error fetching commentaries:", errorCommentariesData);
 }
+
+// Obtener los IDs únicos de los redactores de los comentarios
+const redactorIds = Array.from(
+  new Set(
+    (commentariesData?.map((c) => c.redactor).filter((id): id is string => typeof id === "string") ?? [])
+  )
+);
+
+// Obtener los datos de los redactores en un solo query
+let redactorsMap: Record<string, string> = {};
+if (redactorIds.length > 0) {
+  const { data: redactorsData, error: errorRedactorsData } = await supabase
+    .from("profiles")
+    .select("id, full_name")
+    .in("id", redactorIds);
+
+  if (redactorsData) {
+    redactorsMap = Object.fromEntries(
+      redactorsData
+        .filter((r) => typeof r.full_name === "string" && r.full_name !== null)
+        .map((r) => [r.id, r.full_name as string])
+    );
+  }
+}
 ---
 
 <Layout>
-
   <div class="max-w-7xl mx-auto p-8">
     <h1 class="text-4xl font-bold mb-4">Administar Comentarios</h1>
 
@@ -77,8 +93,8 @@ if (errorCommentariesData || !commentariesData) {
                   {commentary.comment}
                   </div>
                 </td>
-                <td class="py-3 px-4">{new Date(commentary.timestamp).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric'})}</td>
-                <td class="py-3 px-4">{commentary.redactor.full_name ?? "Anom"}</td>
+                <td class="py-3 px-4">{commentary.timestamp ? new Date(String(commentary.timestamp)).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric'}) : ""}</td>
+                <td class="py-3 px-4">{commentary.redactor ? (redactorsMap[commentary.redactor] ?? "Anom") : "Anom"}</td>
                 <td class="px-4 my-5 grid grid-rows-1 gap-2 ">
                   <button
                     class="btn-delete bg-red-700 text-light px-4 py-2 rounded hover:bg-red-800 text-sm cursor-pointer"
@@ -96,9 +112,9 @@ if (errorCommentariesData || !commentariesData) {
 </Layout>
 
 <script>
-  // Client-side functionality
+  // Funcionalidad del cliente
   document.addEventListener("DOMContentLoaded", () => {
-    // Delete button functionality
+    // Funcionalidad del boton de eliminar
     document.querySelectorAll(".btn-delete").forEach((button) => {
       button.addEventListener("click", async (e) => {
         e.preventDefault();
