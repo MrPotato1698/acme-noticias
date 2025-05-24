@@ -3,23 +3,18 @@ import Layout from "@/layouts/Layout.astro";
 import { supabase } from "@/db/supabase";
 
 const { cookies, redirect } = Astro;
-const { id: articleId } = Astro.params;
 
 const accessToken = cookies.get("sb-access-token");
 const refreshToken = cookies.get("sb-refresh-token");
 
 if (!accessToken || !refreshToken) {
-  redirect("/login");
-}
-
-if (!articleId) {
-  throw new Error("ID de artículo no proporcionado.");
+  return redirect("/login");
 }
 
 // Set the session with the cookies
 const { data: dataAuth, error: errorAuth } = await supabase.auth.setSession({
-  refresh_token: refreshToken?.value ?? "",
-  access_token: accessToken?.value ?? "",
+  refresh_token: refreshToken.value,
+  access_token: accessToken.value,
 });
 
 // If there is an error, delete the cookies and redirect to login
@@ -30,9 +25,27 @@ if (errorAuth) {
   cookies.delete("sb-refresh-token", {
     path: "/",
   });
+
+  return redirect("/login");
 }
 
-const id = dataAuth?.user?.id || "";
+const idUser = dataAuth?.user?.id || "";
+
+const { data: userData } = await supabase
+  .from("profiles")
+  .select("rol")
+  .eq("id", idUser)
+  .single();
+
+if (userData == null || userData.rol == null || userData.rol > 1) {
+  return redirect("/index");
+}
+
+const { id: articleId } = Astro.params;
+
+if (!articleId) {
+  throw new Error("ID de artículo no proporcionado.");
+}
 
 const { data: commentariesData, error: errorCommentariesData } = await supabase
   .from("commentary")
