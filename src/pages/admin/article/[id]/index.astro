@@ -37,8 +37,8 @@ const { data: userData } = await supabase
   .eq("id", idUser)
   .single();
 
-if (userData == null || userData.rol == null || userData.rol > 1) {
-  return redirect("/index");
+if (userData == null || userData.rol == null || userData.rol > 2) {
+  return redirect("/");
 }
 
 const { id } = Astro.params;
