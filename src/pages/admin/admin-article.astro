@@ -151,13 +151,13 @@ const baseUrl = paginationBaseUrl.toString();
                 <td class="py-3 px-4">{article.author.full_name ?? "Anom"}</td>
                 <td class="px-4 my-5 grid grid-rows-3 gap-2 ">
                   <a
-                    href={`http://localhost:4321/admin/article/${article.id}`}
+                    href={`/admin/article/${article.id}`}
                     class="bg-primary text-center text-light px-4 py-2 rounded hover:bg-primary/90 text-sm cursor-pointer"
                   >
                     Modificar
                   </a>
                   <a
-                    href={`http://localhost:4321/admin/article/${article.id}/commentaries`}
+                    href={`/admin/article/${article.id}/commentaries`}
                     class="bg-accent text-center text-light px-4 py-2 rounded hover:bg-accent/90 text-sm cursor-pointer"
                   >
                     Comentarios
