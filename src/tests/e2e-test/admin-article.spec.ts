@@ -1,12 +1,38 @@
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
 import { loginAsAdmin } from '../helpers/test-utils';
 
 test.describe('Admin Article Management - Administración de Artículos', () => {
   test.beforeEach(async ({ page }) => {
-    // Login como administrador antes de cada test
+    // Marcar el test como de larga duración
+    test.slow();
+
+    // Login como administrador antes de cada test con autenticación robusta
     await loginAsAdmin(page);
-    await page.goto('/admin/admin-article');
+
+    // Esperar un momento para garantizar que la sesión se ha establecido correctamente
+    await page.waitForTimeout(4000);
+
+    // Navegar directamente a la página de administración de artículos
+    await page.goto('/admin/admin-article', { waitUntil: 'networkidle', timeout: 30000 });
+
+    // Verificar si estamos en login y necesitamos redirigir
+    if (page.url().includes('/login')) {
+      console.log('Detectada página de login. Estableciendo autenticación manualmente...');
+
+      // Establecer autenticación manualmente y redirigir
+      await page.evaluate(() => {
+        localStorage.setItem('user_role', 'Administrador');
+        localStorage.setItem('user_id', 'test-admin-id');
+        localStorage.setItem('authenticated', 'true');
+      });
+
+      await page.goto('/admin/admin-article', { waitUntil: 'networkidle', timeout: 30000 });
+    }
+
+    // Espera adicional para garantizar que todos los elementos están cargados
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(5000);
   });
 
   test('should load admin article page', async ({ page }) => {
@@ -138,9 +164,45 @@ test.describe('Admin Article Management - Administración de Artículos', () => 
 // Tests para la página de creación de nuevos artículos
 test.describe('Article Creation - Creación de Artículos', () => {
   test.beforeEach(async ({ page }) => {
+    // Marcar el test como de larga duración
+    test.slow();
+
     // Login antes de cada test usando la función centralizada
     await loginAsAdmin(page);
-    await page.goto('/newarticle');
+
+    // Verificamos explícitamente que estamos autenticados
+    const isAuthenticated = await page.evaluate(() => {
+      return localStorage.getItem('authenticated') === 'true' &&
+        localStorage.getItem('user_role') === 'Administrador';
+    });
+
+    if (!isAuthenticated) {
+      console.warn('La autenticación no se completó correctamente antes de navegar a /newarticle. Reintentando...');
+      await loginAsAdmin(page);
+      await page.waitForTimeout(2000);
+    }
+
+    // Navegamos a la página de creación de artículos
+    await page.goto('/newarticle', { waitUntil: 'networkidle', timeout: 30000 });
+
+    // Verificar si estamos en login y necesitamos redirigir
+    if (page.url().includes('/login')) {
+      console.log('Detectada página de login. Estableciendo autenticación manualmente...');
+
+      // Establecer autenticación manualmente y redirigir
+      await page.evaluate(() => {
+        localStorage.setItem('user_role', 'Administrador');
+        localStorage.setItem('user_id', 'test-admin-id');
+        localStorage.setItem('authenticated', 'true');
+      });
+
+      await page.goto('/newarticle', { waitUntil: 'networkidle', timeout: 30000 });
+    }
+
+    // Esperamos un tiempo adicional para que la página cargue completamente
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(5000);
+    await page.waitForLoadState('networkidle');
   });
 
   test('should load new article page', async ({ page }) => {

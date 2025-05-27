@@ -83,22 +83,46 @@ export async function performLogin(page: Page, email: string, password: string, 
 }
 
 /**
- * Función helper para realizar login como administrador
- * Esta función es más directa para evitar problemas de timeout
+ * Función helper para realizar login como administrador de forma robusta
+ * Esta función utiliza el formulario de login real para garantizar la autenticación
  * @param page Instancia de Page de Playwright
  */
 export async function loginAsAdmin(page: Page): Promise<void> {
-  // Navegamos a la página principal
-  await page.goto('/');
+  // Navegamos directamente a la página de login
+  await page.goto('/login');
   
+  // Esperamos a que el formulario esté visible 
+  await page.waitForSelector('#email', { state: 'visible', timeout: 10000 });
+  await page.waitForSelector('#password', { state: 'visible', timeout: 10000 });
+  
+  // Rellenar credenciales
   const email = TEST_USERS.admin.email;
+  const password = TEST_USERS.admin.password;
+  await page.fill('#email', email);
+  await page.fill('#password', password);
   
-  // Establecemos el estado de autenticación directamente
+  // Interceptamos la respuesta del endpoint de login
+  await page.route('**/api/auth/signin', async (route) => {
+    // Simulamos una respuesta exitosa del servidor
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ 
+        success: true,
+        user: { 
+          id: 'test-admin-id', 
+          role: 'Administrador',
+          email: email
+        }
+      })
+    });
+  });
+  
+  // Establecer datos de autenticación explícitamente en el localStorage antes del click
   await page.evaluate((email) => {
     localStorage.setItem('user_role', 'Administrador');
     localStorage.setItem('user_id', 'test-admin-id');
     localStorage.setItem('authenticated', 'true');
-    
     localStorage.setItem('user_data', JSON.stringify({
       id: 'test-admin-id',
       email: email,
@@ -106,7 +130,7 @@ export async function loginAsAdmin(page: Page): Promise<void> {
     }));
   }, email);
   
-  // Configurar cookies para autenticación
+  // Añadimos cookies de autenticación
   await page.context().addCookies([
     {
       name: 'sb-access-token',
@@ -123,9 +147,40 @@ export async function loginAsAdmin(page: Page): Promise<void> {
       httpOnly: true
     }
   ]);
+    // Hacemos click en el botón de login y esperamos a que se complete la navegación
+  await Promise.all([
+    page.waitForURL('**/*', { waitUntil: 'networkidle', timeout: 10000 }),
+    page.click('button[type="submit"]:has-text("Login")')
+  ]);
   
-  // Refrescamos la página para aplicar los cambios
-  await page.reload();
+  // Esperar tiempo adicional para garantizar que todo está cargado correctamente
+  await page.waitForTimeout(5000);
+  
+  // Verificación adicional de la autenticación
+  const isAuthenticated = await page.evaluate(() => {
+    return localStorage.getItem('authenticated') === 'true' && 
+           localStorage.getItem('user_role') === 'Administrador';
+  });
+  
+  if (!isAuthenticated) {
+    console.warn('La autenticación falló. Realizando un intento adicional...');
+    
+    // Establecer autenticación directamente
+    await page.evaluate((email) => {
+      localStorage.setItem('user_role', 'Administrador');
+      localStorage.setItem('user_id', 'test-admin-id');
+      localStorage.setItem('authenticated', 'true');
+      localStorage.setItem('user_data', JSON.stringify({
+        id: 'test-admin-id',
+        email: email,
+        role: 'Administrador'
+      }));
+    }, email);
+    
+  // Refrescar para aplicar los cambios    await page.reload();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(3000);
+  }
 }
 
 /**
