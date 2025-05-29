@@ -21,11 +21,15 @@ export default defineConfig({
     baseURL: 'http://localhost:4321',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
-    
+    trace: 'off', // Deshabilita trazas automáticas (opcional)
+
     /* Aumentar timeouts globales */
     navigationTimeout: 60000,
     actionTimeout: 60000,
+
+    /* Deshabilitar capturas de pantalla automáticas */
+    screenshot: 'off', // Deshabilita capturas automáticas
+    video: 'off',      // Deshabilita videos automáticos (opcional)
   },
   
   /* Aumentar el timeout de los tests */
