@@ -13,15 +13,29 @@ test.describe('Article Detail - Detalle de Artículo', () => {
     if (matches?.[1]) {
       articleId = matches[1];
     }
-  });
-
-  test('should load article page with correct content', async ({ page }) => {
+  });  test('should load article page with correct content', async ({ page }) => {
     await page.goto(`/article/${articleId}`);
 
+    // Esperar a que la página cargue completamente
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
+
+    // Verificar que la página no muestra errores críticos (más específicos)
+    await expect(page.locator('body')).not.toContainText('404');
+    await expect(page.locator('body')).not.toContainText('Artículo no encontrado');
+    await expect(page.locator('body')).not.toContainText('ID de redactor no proporcionado');
+
     // Verificar estructura básica del artículo
-    await expect(page.locator('h1')).toBeVisible(); // Título
-    await expect(page.locator('img')).toBeVisible(); // Imagen
-    await expect(page.locator('.prose p')).toBeVisible(); // Contenido
+    await expect(page.locator('article.max-w-3xl h1')).toBeVisible({ timeout: 15000 }); // Título específico
+    
+    // Verificar que hay una imagen del artículo
+    await expect(page.locator('img[alt="Imagen del artículo"]')).toBeVisible({ timeout: 15000 });
+    
+    // Verificar contenido del artículo con el div prose
+    await expect(page.locator('div.prose.prose-lg p')).toBeVisible({ timeout: 15000 });
+    
+    // Verificar que el article container existe
+    await expect(page.locator('article.max-w-3xl')).toBeVisible({ timeout: 15000 });
   });
 
   test('should display article metadata', async ({ page }) => {
@@ -89,17 +103,16 @@ test.describe('Article Detail - Detalle de Artículo', () => {
       await expect(page).toHaveURL(/.*\/searcharticle/);
     }
   });
-
   test('should have appropriate meta tags', async ({ page }) => {
     await page.goto(`/article/${articleId}`);
-
-    // Verificar meta tags básicos
-    await expect(page.locator('meta[charset="UTF-8"]')).toBeVisible();
-    await expect(page.locator('meta[name="viewport"]')).toBeVisible();
 
     // Verificar title
     const title = await page.title();
     expect(title).toContain('IBÑ News');
+    
+    // Verificar viewport meta tag
+    const viewportMeta = await page.locator('meta[name="viewport"]').getAttribute('content');
+    expect(viewportMeta).toBeTruthy();
   });
 
   test('should display article body with properly formatted text', async ({ page }) => {

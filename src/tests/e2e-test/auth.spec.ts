@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAsAdmin, loginAsWriter, loginAsReader, TEST_USERS } from '../helpers/test-utils';
+import { loginAsAdmin, loginAsWriter, loginAsReader } from '../helpers/test-utils';
 
 test.describe('Authentication - Autenticación', () => {
   test.beforeEach(async ({ page }) => {

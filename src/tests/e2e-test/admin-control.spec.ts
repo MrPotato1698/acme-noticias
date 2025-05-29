@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
 import { loginAsAdmin } from '../helpers/test-utils';
 
 test.describe('Admin Control Panel - Panel de Administración', () => {
@@ -14,13 +13,16 @@ test.describe('Admin Control Panel - Panel de Administración', () => {
     await expect(page).toHaveTitle(/IBÑ News - Panel de Administración/);
     await expect(page.locator('h1:has-text("Panel de Administración")')).toBeVisible();
   });
-
   test('should display statistics section', async ({ page }) => {
     // Verificar que la sección de estadísticas está presente
     await expect(page.locator('h2:has-text("Estadísticas del Sitio")')).toBeVisible();
 
-    // Verificar algunos componentes de estadísticas
-    await expect(page.locator('.bg-white.rounded-lg.shadow')).toBeVisible();
+    // Esperar a que el componente StatsPanel cargue
+    await page.waitForSelector('[data-testid="stats-panel"], .stats-panel, .mb-12:has(h2:has-text("Estadísticas del Sitio"))', { timeout: 10000 });
+
+    // Verificar que existe al menos un contenedor de estadísticas
+    const statsContainer = page.locator('.mb-12:has(h2:has-text("Estadísticas del Sitio"))');
+    await expect(statsContainer).toBeVisible();
   });
 
   test('should display category management section', async ({ page }) => {

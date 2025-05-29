@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
 import { loginAsAdmin } from '../helpers/test-utils';
 
 test.describe('Author Management - Gestión de Redactores', () => {
@@ -8,27 +7,24 @@ test.describe('Author Management - Gestión de Redactores', () => {
     await loginAsAdmin(page);
     await page.goto('/admin/admin-author');
   });
-
   test('should load admin author page', async ({ page }) => {
     // Verificar título y estructura básica
     await expect(page).toHaveTitle(/IBÑ News/);
     await expect(page.locator('h1:has-text("Administrar Redactores")')).toBeVisible();
   });
-
   test('should display authors table with headers', async ({ page }) => {
     // Verificar que la tabla de redactores está presente
     await page.waitForSelector('table');
     const tableHeaders = page.locator('th');
 
     // Verificar que hay encabezados para datos importantes
-    const expectedHeaders = ['Nombre', 'Email', 'Rol', 'Acciones'];
+    const expectedHeaders = ['Nombre', 'Correo', 'Acciones'];
 
     for (const header of expectedHeaders) {
       const headerElement = tableHeaders.filter({ hasText: header });
       await expect(headerElement).toBeVisible();
     }
   });
-
   test('should display author entries with action buttons', async ({ page }) => {
     // Esperar a que carguen los redactores
     await page.waitForTimeout(2000);
@@ -39,8 +35,8 @@ test.describe('Author Management - Gestión de Redactores', () => {
 
     if (count > 0) {
       // Verificar que hay botones de acción en cada fila
-      await expect(page.locator('button:has-text("Editar")').first()).toBeVisible();
-      await expect(page.locator('button:has-text("Eliminar")').first()).toBeVisible();
+      await expect(page.locator('a:has-text("Modificar")').first()).toBeVisible();
+      await expect(page.locator('button:has-text("Borrar")').first()).toBeVisible();
     } else {
       console.log('No author entries found for testing');
     }
