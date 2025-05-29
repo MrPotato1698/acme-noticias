@@ -1,8 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../../database.types";
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseUrl = process.env.PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.PUBLIC_SUPABASE_SERVICE_KEY!;
 
 // Cliente con privilegios de servicio para crear usuarios
 const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseServiceKey, {
