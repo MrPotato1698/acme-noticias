@@ -16,8 +16,8 @@ if (!accessToken || !refreshToken) {
 
 // Set the session with the cookies
 const { data: dataAuth, error: errorAuth } = await supabase.auth.setSession({
-  refresh_token: refreshToken?.value ?? '',
-  access_token: accessToken?.value ?? '',
+  refresh_token: refreshToken?.value ?? "",
+  access_token: accessToken?.value ?? "",
 });
 
 // If there is an error, delete the cookies and redirect to login
@@ -33,13 +33,13 @@ if (errorAuth) {
 const id = dataAuth?.user?.id || "";
 
 const { data: userData } = await supabase
-  .from('profiles')
-  .select('rol!inner(name)')
-  .eq('id', id)
+  .from("profiles")
+  .select("rol!inner(name)")
+  .eq("id", id)
   .single();
 
-if(userData) {
-	isLoggedIn = true;
+if (userData) {
+  isLoggedIn = true;
 }
 ---
 
@@ -48,23 +48,6 @@ if(userData) {
     <div class="flex justify-between items-center">
       <!-- Logo -->
       <a href="/" class="flex items-center space-x-2">
-        <!-- Newspaper/document icon that forms part of the site logo 
-        <svg
-          class="h-8 w-8 text-primary"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"
-          ></path>
-          <path d="M18 14h-8"></path>
-          <path d="M15 18h-5"></path>
-          <path d="M10 6h8v4h-8V6Z"></path>
-        </svg>-->
         <img src="/Icon.webp" alt="IBÑ News Logo" class="h-8 w-8" />
 
         <span class="font-bold text-xl">IBÑ News: Acme Noticias</span>
@@ -153,7 +136,7 @@ if(userData) {
           )
         }
 
-        <div id="google_translate_element" class="translate-widget" />
+        <div id="google_translate_element" class="translate-widget"></div>
       </div>
     </div>
   </div>
@@ -161,15 +144,21 @@ if(userData) {
 
 <script is:global>
   function googleTranslateElementInit() {
-    new google.translate.TranslateElement({
-      pageLanguage: 'es',
-      includedLanguages: 'es,en',
-      layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-      autoDisplay: false
-    }, 'google_translate_element');
+    new google.translate.TranslateElement(
+      {
+        pageLanguage: "es",
+        includedLanguages: "es,en,pt",
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false,
+      },
+      "google_translate_element",
+    );
   }
 </script>
 
-<script is:global src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+<script
+  is:global
+  src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+></script>
 
 <script src="@/lib/dropdown.ts"></script>
