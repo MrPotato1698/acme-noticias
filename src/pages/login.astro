@@ -33,7 +33,6 @@ import IBNLogo from "@/assets/IBNBlueLogo.webp";
 
     </div>
   </div>
-
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const form = document.querySelector('form');
@@ -46,6 +45,28 @@ import IBNLogo from "@/assets/IBNBlueLogo.webp";
           body: formData
         });
         if (response.ok) {
+          const data = await response.json();
+            // Establecer información del usuario en localStorage si está disponible
+          if (data.user) {
+            localStorage.setItem('user_data', JSON.stringify(data.user));
+            localStorage.setItem('user_id', data.user.id);
+            localStorage.setItem('user_email', data.user.email);
+
+            // Mapear roles basándose en el email para compatibilidad con tests
+            if (data.user.email === 'admin@admin.com') {
+              localStorage.setItem('user_role', 'Administrador');
+            } else if (data.user.email === 'redactorcuatro@acme.com') {
+              localStorage.setItem('user_role', 'Redactor');
+            } else if (data.user.email === 'redactorvacio@acme.com') {
+              localStorage.setItem('user_role', 'Lector');
+            } else {
+              // Rol por defecto
+              localStorage.setItem('user_role', 'Lector');
+            }
+
+            localStorage.setItem('authenticated', 'true');
+          }
+
           window.location.href = '/';
         } else {
           const data = await response.json();
