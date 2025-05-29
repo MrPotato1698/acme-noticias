@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { TEST_USERS } from '../helpers/test-utils';
 
-test.describe('Admin New Article Test', () => {
-  test('should login and access newarticle route', async ({ page }) => {
+test.describe('Prueba de Nuevo Artículo - Admin', () => {
+  test('debería hacer login y acceder a la ruta newarticle', async ({ page }) => {
     // Ir a la página de login
     await page.goto('/login');
 
@@ -61,14 +61,9 @@ test.describe('Admin New Article Test', () => {
     await page.waitForTimeout(3000);
 
     // Imprimir URL actual para depuración
-    console.log('URL después de navegar a /newarticle:', page.url());
-
-    // Verificar título de la página
+    console.log('URL después de navegar a /newarticle:', page.url());    // Verificar título de la página
     const pageTitle = await page.title();
     console.log('Título de la página:', pageTitle);
-
-    // Capturar screenshot para ver el estado actual
-    await page.screenshot({ path: 'newarticle-test.png' });
 
     // Si estamos en /login, intentar establecer autenticación y navegar de nuevo
     if (page.url().includes('/login')) {
@@ -88,9 +83,6 @@ test.describe('Admin New Article Test', () => {
       // Navegar directamente a la ruta protegida
       await page.goto('/newarticle', { waitUntil: 'networkidle' });
       console.log('URL después del segundo intento:', page.url());
-
-      // Capturar screenshot para ver el estado actual
-      await page.screenshot({ path: 'newarticle-test-retry.png' });
     }
   });
 });

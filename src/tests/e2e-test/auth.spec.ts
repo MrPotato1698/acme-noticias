@@ -1,15 +1,15 @@
 import { test, expect } from '@playwright/test';
 import { loginAsAdmin, loginAsWriter, loginAsReader } from '../helpers/test-utils';
 
-test.describe('Authentication - Autenticación', () => {
+test.describe('Autenticación', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/login');
   });
 
-  test('should load login page with correct title', async ({ page }) => {
+  test('debería cargar la página de login con el título correcto', async ({ page }) => {
     await expect(page).toHaveTitle('IBÑ News - Login');
   });
-  test('should display login form', async ({ page }) => {
+  test('debería mostrar el formulario de login', async ({ page }) => {
     // Verificar que el formulario de login está presente usando un selector más específico
     await expect(page.locator('form[action="/api/auth/signin"]')).toBeVisible();
 
@@ -20,7 +20,7 @@ test.describe('Authentication - Autenticación', () => {
     // Verificar botón de submit
     await expect(page.locator('button[type="submit"]:has-text("Login")')).toBeVisible();
   });
-  test('should show validation for empty fields', async ({ page }) => {
+  test('debería mostrar validación para campos vacíos', async ({ page }) => {
     // Intentar hacer submit sin llenar campos
     await page.click('button[type="submit"]:has-text("Login")');
 
@@ -35,7 +35,7 @@ test.describe('Authentication - Autenticación', () => {
     // Como alternativa, podemos verificar que la URL no ha cambiado
     await expect(page).toHaveURL(/.*\/login/);
   });
-  test('should show error for invalid credentials', async ({ page }) => {
+  test('debería mostrar error para credenciales inválidas', async ({ page }) => {
     // Llenar con credenciales incorrectas
     await page.fill('#email', 'invalid@test.com');
     await page.fill('#password', 'wrongpassword');
@@ -52,14 +52,14 @@ test.describe('Authentication - Autenticación', () => {
     // Esperar y verificar mensaje de error
     await page.waitForTimeout(2000);
   });
-  test('should navigate to homepage when accessing login while logged out', async ({ page }) => {
+  test('debería navegar a la página principal cuando se acceda a login estando desconectado', async ({ page }) => {
     // Verificar que estamos en la página de login
     await expect(page).toHaveURL(/.*\/login/);
 
     // Verificar que el formulario de inicio de sesión está visible
     await expect(page.locator('form[action="/api/auth/signin"]')).toBeVisible();
   });
-  test('should have proper form attributes', async ({ page }) => {
+  test('debería tener atributos de formulario apropiados', async ({ page }) => {
     const emailInput = page.locator('#email');
     const passwordInput = page.locator('#password');
 
@@ -72,7 +72,7 @@ test.describe('Authentication - Autenticación', () => {
     await expect(passwordInput).toHaveAttribute('autocomplete', 'off');
   });
 
-  test('should have accessible form labels', async ({ page }) => {
+  test('debería tener etiquetas de formulario accesibles', async ({ page }) => {
     // Verificar que los labels están asociados correctamente
     await expect(page.locator('label[for="email"]')).toBeVisible();
     await expect(page.locator('label[for="password"]')).toBeVisible();
@@ -82,7 +82,7 @@ test.describe('Authentication - Autenticación', () => {
     await expect(page.locator('label[for="password"]')).toHaveText('Contraseña');
   });
 
-  test('should have proper styling and layout', async ({ page }) => {
+  test('debería tener estilos y diseño apropiados', async ({ page }) => {
     // Verificar que el contenedor principal está presente
     await expect(page.locator('.flex.items-center.justify-center')).toBeVisible();
 
@@ -92,7 +92,7 @@ test.describe('Authentication - Autenticación', () => {
     await expect(emailInput).toHaveClass(/rounded-md/);
   });
 
-  test('should handle form submission correctly', async ({ page }) => {
+  test('debería manejar el envío del formulario correctamente', async ({ page }) => {
     // Llenar el formulario
     await page.fill('#email', 'test@example.com');
     await page.fill('#password', 'testpassword');
@@ -109,7 +109,7 @@ test.describe('Authentication - Autenticación', () => {
     await loginRequest;
   });
 
-  test('should redirect after successful login', async ({ page }) => {
+  test('debería redireccionar después de un login exitoso', async ({ page }) => {
     // Nota: Este test requiere credenciales válidas o un mock
     // Por ahora verificamos la lógica del formulario
 
@@ -133,8 +133,8 @@ test.describe('Authentication - Autenticación', () => {
 });
 
 // Tests para verificar la autenticación con diferentes roles
-test.describe('Role-based Authentication - Autenticación basada en roles', () => {
-  test('should login successfully as admin', async ({ page }) => {
+test.describe('Autenticación basada en roles', () => {
+  test('debería hacer login exitosamente como administrador', async ({ page }) => {
     // Usamos la función centralizada de loginAsAdmin
     await loginAsAdmin(page);
 
@@ -146,7 +146,7 @@ test.describe('Role-based Authentication - Autenticación basada en roles', () =
     expect(role).toBe('Administrador');
   });
 
-  test('should login successfully as writer', async ({ page }) => {
+  test('debería hacer login exitosamente como redactor', async ({ page }) => {
     // Usamos la función centralizada de loginAsWriter
     await loginAsWriter(page);
 
@@ -158,7 +158,7 @@ test.describe('Role-based Authentication - Autenticación basada en roles', () =
     expect(role).toBe('Redactor');
   });
 
-  test('should login successfully as reader', async ({ page }) => {
+  test('debería hacer login exitosamente como lector', async ({ page }) => {
     // Usamos la función centralizada de loginAsReader
     await loginAsReader(page);
 

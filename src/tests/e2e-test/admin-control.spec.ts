@@ -1,19 +1,19 @@
 import { test, expect } from '@playwright/test';
 import { loginAsAdmin } from '../helpers/test-utils';
 
-test.describe('Admin Control Panel - Panel de Administración', () => {
+test.describe('Panel de Control de Administración', () => {
   test.beforeEach(async ({ page }) => {
     // Login de administrador antes de cada test
     await loginAsAdmin(page);
     await page.goto('/admin/admin-control');
   });
 
-  test('should load admin control panel', async ({ page }) => {
+  test('debería cargar el panel de control de administración', async ({ page }) => {
     // Verificar título y estructura básica
     await expect(page).toHaveTitle(/IBÑ News - Panel de Administración/);
     await expect(page.locator('h1:has-text("Panel de Administración")')).toBeVisible();
   });
-  test('should display statistics section', async ({ page }) => {
+  test('debería mostrar la sección de estadísticas', async ({ page }) => {
     // Verificar que la sección de estadísticas está presente
     await expect(page.locator('h2:has-text("Estadísticas del Sitio")')).toBeVisible();
 
@@ -25,12 +25,12 @@ test.describe('Admin Control Panel - Panel de Administración', () => {
     await expect(statsContainer).toBeVisible();
   });
 
-  test('should display category management section', async ({ page }) => {
+  test('debería mostrar la sección de gestión de categorías', async ({ page }) => {
     // Verificar que la sección de categorías está presente
     await expect(page.locator('h2:has-text("Gestión de Categorías")')).toBeVisible();
   });
 
-  test('should display writers statistics', async ({ page }) => {
+  test('debería mostrar estadísticas de redactores', async ({ page }) => {
     // Verificar que existe la sección de estadísticas de redactores
     const writersStats = page.locator('h3:has-text("Estadísticas de Redactores")');
 
@@ -42,7 +42,7 @@ test.describe('Admin Control Panel - Panel de Administración', () => {
     }
   });
 
-  test('should display monthly activity chart or section', async ({ page }) => {
+  test('debería mostrar gráfico o sección de actividad mensual', async ({ page }) => {
     // Verificar que existe la sección de actividad mensual
     const monthlyActivity = page.locator('h3:has-text("Artículos Publicados")');
 
@@ -55,7 +55,7 @@ test.describe('Admin Control Panel - Panel de Administración', () => {
 });
 
 // Tests para la gestión de categorías
-test.describe('Category Management - Gestión de Categorías', () => {
+test.describe('Gestión de Categorías', () => {
   test.beforeEach(async ({ page }) => {
     // Login de administrador antes de cada test
     await loginAsAdmin(page);
@@ -65,7 +65,7 @@ test.describe('Category Management - Gestión de Categorías', () => {
     await page.waitForSelector('h2:has-text("Gestión de Categorías")');
   });
 
-  test('should display add category form', async ({ page }) => {
+  test('debería mostrar formulario para añadir categoría', async ({ page }) => {
     // Verificar que el formulario para añadir categorías está presente
     await expect(page.locator('h3:has-text("Añadir Nueva Categoría")')).toBeVisible();
     await expect(page.locator('#add-category-form')).toBeVisible();
@@ -78,13 +78,13 @@ test.describe('Category Management - Gestión de Categorías', () => {
     await expect(page.locator('button:has-text("Añadir Categoría")')).toBeVisible();
   });
 
-  test('should display existing categories list', async ({ page }) => {
+  test('debería mostrar lista de categorías existentes', async ({ page }) => {
     // Verificar que la lista de categorías está presente
     await expect(page.locator('h3:has-text("Categorías Existentes")')).toBeVisible();
     await expect(page.locator('#categories-list')).toBeVisible();
   });
 
-  test('should validate required fields when adding category', async ({ page }) => {
+  test('debería validar campos requeridos al añadir categoría', async ({ page }) => {
     // Intentar enviar formulario sin nombre (que es requerido)
     await page.click('button:has-text("Añadir Categoría")');
 
@@ -92,7 +92,7 @@ test.describe('Category Management - Gestión de Categorías', () => {
     await expect(page.locator('#category-name')).toHaveAttribute('required', '');
   });
 
-  test('should add new category with valid data', async ({ page }) => {
+  test('debería añadir nueva categoría con datos válidos', async ({ page }) => {
     // Datos de prueba para categoría
     const testCategory = {
       name: 'Test Category ' + Date.now(),
@@ -120,7 +120,7 @@ test.describe('Category Management - Gestión de Categorías', () => {
     await page.waitForTimeout(2000);
   });
 
-  test('should show delete confirmation for existing categories', async ({ page }) => {
+  test('debería mostrar confirmación de eliminación para categorías existentes', async ({ page }) => {
     // Buscar botones de eliminar categoría
     const deleteButtons = page.locator('button.delete-category-btn');
 
@@ -138,7 +138,7 @@ test.describe('Category Management - Gestión de Categorías', () => {
     }
   });
 
-  test('should delete category when confirmed', async ({ page }) => {
+  test('debería eliminar categoría cuando se confirme', async ({ page }) => {
     // Buscar botones de eliminar categoría
     const deleteButtons = page.locator('button.delete-category-btn');
 
@@ -170,7 +170,7 @@ test.describe('Category Management - Gestión de Categorías', () => {
     }
   });
 
-  test('should handle empty categories list gracefully', async ({ page }) => {
+  test('debería manejar lista de categorías vacía apropiadamente', async ({ page }) => {
     // Este test verifica que se muestra un mensaje adecuado cuando no hay categorías
     // (Necesitaríamos modificar el DOM para simular esta condición)
 

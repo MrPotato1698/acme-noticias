@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { loginAsAdmin } from '../helpers/test-utils';
 
-test.describe('Admin Article Management - Administración de Artículos', () => {
+test.describe('Administración de Artículos - Admin', () => {
   test.beforeEach(async ({ page }) => {
     // Marcar el test como de larga duración
     test.slow();
@@ -35,13 +35,13 @@ test.describe('Admin Article Management - Administración de Artículos', () => 
     await page.waitForTimeout(5000);
   });
 
-  test('should load admin article page', async ({ page }) => {
+  test('debería cargar la página de administración de artículos', async ({ page }) => {
     // Verificar título y estructura básica
     await expect(page).toHaveTitle(/IBÑ News - Administrar Articulos/);
     await expect(page.locator('h1:has-text("Administar Articulos")')).toBeVisible();
   });
 
-  test('should display article table with headers', async ({ page }) => {
+  test('debería mostrar la tabla de artículos con encabezados', async ({ page }) => {
     // Verificar que la tabla de artículos está presente
     const tableHeaders = page.locator('th');
 
@@ -54,7 +54,7 @@ test.describe('Admin Article Management - Administración de Artículos', () => 
     await expect(tableHeaders.filter({ hasText: 'Acciones' })).toBeVisible();
   });
 
-  test('should have button to add new articles', async ({ page }) => {
+  test('debería tener botón para añadir nuevos artículos', async ({ page }) => {
     // Verificar que existe botón para añadir artículos
     const addButton = page.locator('a:has-text("Añadir nuevos articulos")');
     await expect(addButton).toBeVisible();
@@ -63,7 +63,7 @@ test.describe('Admin Article Management - Administración de Artículos', () => 
     expect(await addButton.getAttribute('href')).toBe('/newarticle');
   });
 
-  test('should display article entries and edit actions', async ({ page }) => {
+  test('debería mostrar entradas de artículos y acciones de edición', async ({ page }) => {
     // Esperar a que carguen los artículos
     await page.waitForTimeout(2000);
 
@@ -81,7 +81,7 @@ test.describe('Admin Article Management - Administración de Artículos', () => 
     }
   });
 
-  test('should navigate to edit article page when "Modificar" is clicked', async ({ page }) => {
+  test('debería navegar a la página de edición de artículo cuando se hace clic en "Modificar"', async ({ page }) => {
     // Esperar a que carguen los artículos
     await page.waitForTimeout(2000);
 
@@ -101,7 +101,7 @@ test.describe('Admin Article Management - Administración de Artículos', () => 
     }
   });
 
-  test('should navigate to comments page when "Comentarios" is clicked', async ({ page }) => {
+  test('debería navegar a la página de comentarios cuando se hace clic en "Comentarios"', async ({ page }) => {
     // Esperar a que carguen los artículos
     await page.waitForTimeout(2000);
 
@@ -122,7 +122,7 @@ test.describe('Admin Article Management - Administración de Artículos', () => 
     }
   });
 
-  test('should show confirmation dialog when delete button is clicked', async ({ page }) => {
+  test('debería mostrar diálogo de confirmación cuando se hace clic en el botón eliminar', async ({ page }) => {
     // Esperar a que carguen los artículos
     await page.waitForTimeout(2000);
 
@@ -142,7 +142,7 @@ test.describe('Admin Article Management - Administración de Artículos', () => 
       console.log('No delete button found for testing');
     }
   });
-  test('should have working pagination if multiple articles exist', async ({ page }) => {
+  test('debería tener paginación funcional si existen múltiples artículos', async ({ page }) => {
     // Esperar a que carguen los artículos
     await page.waitForTimeout(2000);
 
@@ -167,7 +167,7 @@ test.describe('Admin Article Management - Administración de Artículos', () => 
 });
 
 // Tests para la página de creación de nuevos artículos
-test.describe('Article Creation - Creación de Artículos', () => {
+test.describe('Creación de Artículos', () => {
   test.beforeEach(async ({ page }) => {
     // Marcar el test como de larga duración
     test.slow();
@@ -210,11 +210,11 @@ test.describe('Article Creation - Creación de Artículos', () => {
     await page.waitForLoadState('networkidle');
   });
 
-  test('should load new article page', async ({ page }) => {
+  test('debería cargar la página de nuevo artículo', async ({ page }) => {
     await expect(page).toHaveTitle(/IBÑ News/);
     await expect(page.locator('form#articleForm')).toBeVisible();
   });
-  test('should display article creation form with all fields', async ({ page }) => {
+  test('debería mostrar el formulario de creación de artículo con todos los campos', async ({ page }) => {
     // Esperar a que cargue completamente la página
     await page.waitForTimeout(3000);
     
@@ -239,7 +239,7 @@ test.describe('Article Creation - Creación de Artículos', () => {
     await expect(page.locator('button[type="submit"]:has-text("Publicar Artículo")')).toBeVisible();
   });
 
-  test('should show validation for missing required fields', async ({ page }) => {
+  test('debería mostrar validación para campos requeridos faltantes', async ({ page }) => {
     // Intentar enviar el formulario sin completar campos
     await page.click('button[type="submit"]:has-text("Publicar Artículo")');
 
@@ -250,7 +250,7 @@ test.describe('Article Creation - Creación de Artículos', () => {
     await expect(titleField).toHaveAttribute('required', '');
     await expect(contentField).toHaveAttribute('required', '');
   });
-  test('should allow category selection', async ({ page }) => {
+  test('debería permitir la selección de categorías', async ({ page }) => {
     // Esperar a que las categorías se carguen
     await page.waitForTimeout(2000);
 
@@ -273,7 +273,7 @@ test.describe('Article Creation - Creación de Artículos', () => {
     }
   });
 
-  test('should have working dropzone for images', async ({ page }) => {
+  test('debería tener zona de arrastre funcional para imágenes', async ({ page }) => {
     // Verificar que el dropzone está presente
     const dropzone = page.locator('#dropzone');
     await expect(dropzone).toBeVisible();
@@ -286,7 +286,7 @@ test.describe('Article Creation - Creación de Artículos', () => {
     await expect(page.locator('text=Arrastra y suelta imágenes')).toBeVisible();
   });
 
-  test('should submit form with minimal valid data', async ({ page }) => {
+  test('debería enviar el formulario con datos válidos mínimos', async ({ page }) => {
     // Rellenar formulario con datos mínimos
     await page.fill('#title', 'Test Article Title');
     await page.fill('#content', 'This is test article content for automated testing.');

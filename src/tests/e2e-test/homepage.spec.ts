@@ -1,13 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Homepage - Página Principal', () => {
+test.describe('Página Principal', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
   });
 
-  test('should load homepage with correct title', async ({ page }) => {
+  test('debería cargar la página principal con el título correcto', async ({ page }) => {
     await expect(page).toHaveTitle('IBÑ News');
-  });  test('should display latest news section', async ({ page }) => {
+  });  test('debería mostrar la sección de últimas noticias', async ({ page }) => {
     // Verificar título de últimas noticias
     await expect(page.locator('h2:has-text("Últimas noticias")')).toBeVisible();
 
@@ -15,7 +15,7 @@ test.describe('Homepage - Página Principal', () => {
     await expect(page.locator('[class*="grid"]').first()).toBeVisible();
   });
 
-  test('should display main navigation elements', async ({ page }) => {
+  test('debería mostrar elementos principales de navegación', async ({ page }) => {
     // Verificar que la página principal se carga correctamente
     await expect(page.locator('main')).toBeVisible();
     
@@ -32,7 +32,7 @@ test.describe('Homepage - Página Principal', () => {
     }
   });
 
-  test('should display category sections', async ({ page }) => {
+  test('debería mostrar secciones de categorías', async ({ page }) => {
     // Esperar a que se carguen las categorías
     await page.waitForTimeout(2000);
 
@@ -44,7 +44,7 @@ test.describe('Homepage - Página Principal', () => {
     expect(count).toBeGreaterThanOrEqual(1);
   });
 
-  test('should have working article links', async ({ page }) => {
+  test('debería tener enlaces de artículos funcionales', async ({ page }) => {
     // Buscar el primer enlace de artículo
     const articleLink = page.locator('a[href^="/article/"]').first();
 
@@ -53,7 +53,7 @@ test.describe('Homepage - Página Principal', () => {
       expect(href).toMatch(/\/article\/\d+/);
     }
   });
-  test('should display footer or page content', async ({ page }) => {
+  test('debería mostrar footer o contenido de página', async ({ page }) => {
     // Scroll hacia abajo para ver el footer si existe
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
 
@@ -73,17 +73,17 @@ test.describe('Homepage - Página Principal', () => {
     }
   });
 
-  test('should have Google Translate widget', async ({ page }) => {
+  test('debería tener el widget de Google Translate', async ({ page }) => {
     // Verificar que el elemento de traducción está presente
     await expect(page.locator('#google_translate_element')).toBeVisible();
   });
 
-  test('should navigate to search page when clicking search button', async ({ page }) => {
+  test('debería navegar a la página de búsqueda cuando se hace clic en el botón de búsqueda', async ({ page }) => {
     await page.locator('a[href="/searcharticle"]').click();
     await expect(page).toHaveURL(/.*\/searcharticle/);
   });
 
-  test('should navigate to category page when clicking "Ver todos"', async ({ page }) => {
+  test('debería navegar a la página de categoría cuando se hace clic en "Ver todos"', async ({ page }) => {
     // Esperar a que se carguen las categorías
     await page.waitForTimeout(2000);
 

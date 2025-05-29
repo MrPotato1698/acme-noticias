@@ -1,15 +1,15 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Search Functionality - Funcionalidad de Búsqueda', () => {
+test.describe('Funcionalidad de Búsqueda', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/searcharticle');
   });
 
-  test('should load search page with correct title', async ({ page }) => {
+  test('debería cargar la página de búsqueda con el título correcto', async ({ page }) => {
     await expect(page).toHaveTitle('IBÑ News - Buscar Articulos');
   });
 
-  test('should display search sidebar with all filters', async ({ page }) => {
+  test('debería mostrar la barra lateral de búsqueda con todos los filtros', async ({ page }) => {
     // Verificar título del sidebar
     await expect(page.locator('h2:has-text("Filtros de búsqueda")')).toBeVisible();
 
@@ -28,12 +28,12 @@ test.describe('Search Functionality - Funcionalidad de Búsqueda', () => {
     await expect(page.locator('h3:has-text("Redactor")')).toBeVisible();
     await expect(page.locator('#author-search')).toBeVisible();
   });
-  test('should display action buttons', async ({ page }) => {
+  test('debería mostrar los botones de acción', async ({ page }) => {
     await expect(page.locator('#apply-filters')).toBeVisible();
     await expect(page.locator('#clear-filters')).toBeVisible();
   });
 
-  test('should filter by category', async ({ page }) => {
+  test('debería filtrar por categoría', async ({ page }) => {
     // Seleccionar una categoría (si hay alguna disponible)
     const categoryRadio = page.locator('input[name="category"]').nth(1); // Primera categoría real
 
@@ -45,7 +45,7 @@ test.describe('Search Functionality - Funcionalidad de Búsqueda', () => {
       await expect(page).toHaveURL(/.*category=\d+.*/);
     }
   });
-  test('should change sort order', async ({ page }) => {
+  test('debería cambiar el orden de clasificación', async ({ page }) => {
     // Seleccionar "Más antiguas primero"
     await page.click('#sort-oldest');
     await page.click('#apply-filters');
@@ -60,7 +60,7 @@ test.describe('Search Functionality - Funcionalidad de Búsqueda', () => {
     await expect(page.locator('span:has-text("Orden: Más antiguas primero")')).toBeVisible();
   });
 
-  test('should clear all filters', async ({ page }) => {
+  test('debería limpiar todos los filtros', async ({ page }) => {
     // Aplicar algunos filtros primero
     await page.fill('#search-input', 'test');
     await page.click('#sort-oldest');
@@ -72,7 +72,7 @@ test.describe('Search Functionality - Funcionalidad de Búsqueda', () => {
     // Verificar que la URL vuelve a la página base
     await expect(page).toHaveURL(/.*\/searcharticle$/);
   });
-  test('should display search results', async ({ page }) => {
+  test('debería mostrar resultados de búsqueda', async ({ page }) => {
     // Realizar una búsqueda
     await page.fill('#search-input', 'a'); // Búsqueda amplia
     await page.click('#apply-filters');
@@ -88,7 +88,7 @@ test.describe('Search Functionality - Funcionalidad de Búsqueda', () => {
     await expect(resultsSection.or(noResultsMessage)).toBeVisible();
   });
 
-  test('should show pagination when applicable', async ({ page }) => {
+  test('debería mostrar paginación cuando sea aplicable', async ({ page }) => {
     // Realizar una búsqueda amplia
     await page.fill('#search-input', 'a');
     await page.click('#apply-filters');
@@ -103,7 +103,7 @@ test.describe('Search Functionality - Funcionalidad de Búsqueda', () => {
     }
   });
 
-  test('should navigate to article detail from search results', async ({ page }) => {
+  test('debería navegar al detalle del artículo desde los resultados de búsqueda', async ({ page }) => {
     // Realizar una búsqueda
     await page.fill('#search-input', 'a');
     await page.click('#apply-filters');

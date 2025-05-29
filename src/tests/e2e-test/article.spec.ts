@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Article Detail - Detalle de Artículo', () => {
+test.describe('Detalle de Artículo', () => {
   // Variable para almacenar el ID de un artículo para pruebas
   let articleId: string | number = 1; // Valor predeterminado
 
@@ -13,7 +13,7 @@ test.describe('Article Detail - Detalle de Artículo', () => {
     if (matches?.[1]) {
       articleId = matches[1];
     }
-  });  test('should load article page with correct content', async ({ page }) => {
+  });  test('debería cargar la página del artículo con el contenido correcto', async ({ page }) => {
     await page.goto(`/article/${articleId}`);
 
     // Esperar a que la página cargue completamente
@@ -38,7 +38,7 @@ test.describe('Article Detail - Detalle de Artículo', () => {
     await expect(page.locator('article.max-w-3xl')).toBeVisible({ timeout: 15000 });
   });
 
-  test('should display article metadata', async ({ page }) => {
+  test('debería mostrar metadatos del artículo', async ({ page }) => {
     await page.goto(`/article/${articleId}`);
 
     // Verificar metadatos del artículo
@@ -46,14 +46,14 @@ test.describe('Article Detail - Detalle de Artículo', () => {
     await expect(page.locator('text=Publicado el:')).toBeVisible();
   });
 
-  test('should display comments section', async ({ page }) => {
+  test('debería mostrar la sección de comentarios', async ({ page }) => {
     await page.goto(`/article/${articleId}`);
 
     // Verificar que existe sección de comentarios
     await expect(page.locator('h3:has-text("Comentarios")')).toBeVisible();
   });
 
-  test('should display comment form for logged in users', async ({ page }) => {
+  test('debería mostrar formulario de comentario para usuarios autenticados', async ({ page }) => {
     // Primero intentamos hacer login
     await page.goto('/login');
     await page.fill('#email', 'test@example.com');
@@ -78,7 +78,7 @@ test.describe('Article Detail - Detalle de Artículo', () => {
     }
   });
 
-  test('should navigate back to search results via breadcrumb', async ({ page }) => {
+  test('debería navegar de vuelta a los resultados de búsqueda vía breadcrumb', async ({ page }) => {
     // Ir primero a la búsqueda
     await page.goto('/searcharticle');
     await page.fill('#search-input', 'a');
@@ -103,7 +103,7 @@ test.describe('Article Detail - Detalle de Artículo', () => {
       await expect(page).toHaveURL(/.*\/searcharticle/);
     }
   });
-  test('should have appropriate meta tags', async ({ page }) => {
+  test('debería tener etiquetas meta apropiadas', async ({ page }) => {
     await page.goto(`/article/${articleId}`);
 
     // Verificar title
@@ -115,7 +115,7 @@ test.describe('Article Detail - Detalle de Artículo', () => {
     expect(viewportMeta).toBeTruthy();
   });
 
-  test('should display article body with properly formatted text', async ({ page }) => {
+  test('debería mostrar el cuerpo del artículo con texto formateado apropiadamente', async ({ page }) => {
     await page.goto(`/article/${articleId}`);
 
     // Verificar que el cuerpo del artículo tiene formato adecuado
@@ -127,7 +127,7 @@ test.describe('Article Detail - Detalle de Artículo', () => {
     expect(textContent?.length).toBeGreaterThan(0);
   });
 
-  test('should have sharing functionality or related features', async ({ page }) => {
+  test('debería tener funcionalidad de compartir u otras características relacionadas', async ({ page }) => {
     await page.goto(`/article/${articleId}`);
 
     // Verificar elementos de navegación y compartir si existen
@@ -143,7 +143,7 @@ test.describe('Article Detail - Detalle de Artículo', () => {
     console.log(`Found ${count} social sharing links`);
   });
 
-  test('should have related articles if available', async ({ page }) => {
+  test('debería mostrar artículos relacionados si están disponibles', async ({ page }) => {
     await page.goto(`/article/${articleId}`);
 
     // Buscar enlaces a artículos relacionados (si existen)

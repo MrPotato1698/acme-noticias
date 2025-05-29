@@ -1,18 +1,18 @@
 import { test, expect } from '@playwright/test';
 import { loginAsAdmin } from '../helpers/test-utils';
 
-test.describe('Author Management - Gestión de Redactores', () => {
+test.describe('Gestión de Redactores', () => {
   test.beforeEach(async ({ page }) => {
     // Login de administrador antes de cada test
     await loginAsAdmin(page);
     await page.goto('/admin/admin-author');
   });
-  test('should load admin author page', async ({ page }) => {
+  test('debería cargar la página de administrador de redactores', async ({ page }) => {
     // Verificar título y estructura básica
     await expect(page).toHaveTitle(/IBÑ News/);
     await expect(page.locator('h1:has-text("Administrar Redactores")')).toBeVisible();
   });
-  test('should display authors table with headers', async ({ page }) => {
+  test('debería mostrar la tabla de redactores con encabezados', async ({ page }) => {
     // Verificar que la tabla de redactores está presente
     await page.waitForSelector('table');
     const tableHeaders = page.locator('th');
@@ -25,7 +25,7 @@ test.describe('Author Management - Gestión de Redactores', () => {
       await expect(headerElement).toBeVisible();
     }
   });
-  test('should display author entries with action buttons', async ({ page }) => {
+  test('debería mostrar entradas de redactores con botones de acción', async ({ page }) => {
     // Esperar a que carguen los redactores
     await page.waitForTimeout(2000);
 
@@ -42,7 +42,7 @@ test.describe('Author Management - Gestión de Redactores', () => {
     }
   });
 
-  test('should open edit dialog when edit button is clicked', async ({ page }) => {
+  test('debería abrir diálogo de edición cuando se hace clic en el botón editar', async ({ page }) => {
     // Esperar a que carguen los redactores
     await page.waitForTimeout(2000);
 
@@ -60,7 +60,7 @@ test.describe('Author Management - Gestión de Redactores', () => {
     }
   });
 
-  test('should show confirmation dialog when delete button is clicked', async ({ page }) => {
+  test('debería mostrar diálogo de confirmación cuando se hace clic en el botón eliminar', async ({ page }) => {
     // Esperar a que carguen los redactores
     await page.waitForTimeout(2000);
 
@@ -81,7 +81,7 @@ test.describe('Author Management - Gestión de Redactores', () => {
     }
   });
 
-  test('should edit author information', async ({ page }) => {
+  test('debería editar información del redactor', async ({ page }) => {
     // Esperar a que carguen los redactores
     await page.waitForTimeout(2000);
 
@@ -89,10 +89,6 @@ test.describe('Author Management - Gestión de Redactores', () => {
     const editButton = page.locator('button:has-text("Editar")').first();
 
     if (await editButton.isVisible()) {
-      // Obtener el id del autor a editar
-      const row = editButton.locator('..').locator('..');
-      const authorId = await row.getAttribute('data-author-id') ?? '1';
-
       // Interceptar request de edición
       await page.route('**/api/author/editauthor', async route => {
         await route.fulfill({
@@ -127,7 +123,7 @@ test.describe('Author Management - Gestión de Redactores', () => {
     }
   });
 
-  test('should delete author when confirmed', async ({ page }) => {
+  test('debería eliminar redactor cuando se confirme', async ({ page }) => {
     // Esperar a que carguen los redactores
     await page.waitForTimeout(2000);
 
@@ -135,10 +131,6 @@ test.describe('Author Management - Gestión de Redactores', () => {
     const deleteButton = page.locator('button:has-text("Eliminar")').first();
 
     if (await deleteButton.isVisible()) {
-      // Obtener el id del autor a eliminar (si está disponible en el DOM)
-      const row = await deleteButton.locator('..').locator('..');
-      const authorId = await row.getAttribute('data-author-id') || '1';
-
       // Interceptar request de borrado
       await page.route('**/api/author/deleteauthor', async route => {
         await route.fulfill({
@@ -163,7 +155,7 @@ test.describe('Author Management - Gestión de Redactores', () => {
     }
   });
 
-  test('should have working pagination if multiple pages exist', async ({ page }) => {
+  test('debería tener paginación funcional si existen múltiples páginas', async ({ page }) => {
     // Esperar a que carguen los redactores
     await page.waitForTimeout(2000);
 
@@ -178,7 +170,7 @@ test.describe('Author Management - Gestión de Redactores', () => {
     }
   });
 
-  test('should view author detail page', async ({ page }) => {
+  test('debería ver página de detalle del redactor', async ({ page }) => {
     // Esperar a que carguen los redactores
     await page.waitForTimeout(2000);
 
@@ -186,14 +178,11 @@ test.describe('Author Management - Gestión de Redactores', () => {
     const authorLink = page.locator('a[href^="/admin/authors/"]').first();
 
     if (await authorLink.isVisible()) {
-      // Interceptar la navegación
-      const navigationPromise = page.waitForNavigation();
-
-      // Hacer clic en el enlace
+      // Hacer clic en el enlace y esperar la navegación
       await authorLink.click();
 
-      // Esperar a que complete la navegación
-      await navigationPromise;
+      // Esperar a que la URL cambie a la página de detalle del autor
+      await page.waitForURL(/.*\/admin\/authors\/\w+$/);
 
       // Verificar que estamos en la página de detalle del autor
       await expect(page).toHaveURL(/.*\/admin\/authors\/\w+$/);

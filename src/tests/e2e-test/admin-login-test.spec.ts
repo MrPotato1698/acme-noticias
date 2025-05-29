@@ -1,8 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { TEST_USERS } from '../helpers/test-utils';
 
-test.describe('Admin Login Test Simplificado', () => {
-  test('should login with admin credentials and verify localStorage', async ({ page }) => {
+test.describe('Prueba de Login Administrador Simplificada', () => {
+  test('debería hacer login con credenciales de administrador y verificar localStorage', async ({ page }) => {
     // Ir a la página de login
     await page.goto('/login');
 
@@ -91,8 +91,5 @@ test.describe('Admin Login Test Simplificado', () => {
     // Verificar título de la página (no debería ser el de login)
     const pageTitle = await page.title();
     console.log('Título de la página:', pageTitle);
-
-    // Capturar screenshot para ver el estado actual
-    await page.screenshot({ path: 'admin-article-test.png' });
   });
 });
