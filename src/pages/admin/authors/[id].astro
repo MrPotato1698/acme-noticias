@@ -56,7 +56,7 @@ const { data, error } = await supabase
 const nombreRedactor = data?.full_name ?? '';
 ---
 
-<Layout>
+<Layout title = `IBÑ News - Administrar redactor + ${nombreRedactor}`>
   <div class="flex items-center justify-center">
     <div class="p-8 rounded-lg shadow-md max-w-md w-full">
       <h1 class="text-2xl font-bold mb-6">Cambiar Nombre</h1>
